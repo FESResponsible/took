@@ -1,4 +1,5 @@
 import { STORES, BAG_TYPES, filterStores, calculateTotal, validateBooking, localDate } from './model.js';
+import { initAnalytics, track } from './analytics.js';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -31,7 +32,7 @@ function renderStores() {
   $('#results-summary').innerHTML = (state.query ? '<strong>“' + escapeHtml(state.query) + '”</strong> 주변 ' : '') + '보관 공간 <strong>' + stores.length + '</strong>곳';
   $('#store-grid').innerHTML = stores.map(store => {
     const saved = state.favourites.has(store.id);
-    return '<article class="store-card"><button class="store-image-button" data-store="' + store.id + '" aria-label="' + store.name + ' 상세 보기"><img src="' + store.image + '" alt="' + store.name + '의 분위기를 표현한 예시 사진" loading="lazy" width="900" height="675" style="object-position:' + store.imagePosition + '"><span class="store-tag">' + store.tag + '</span></button><button class="save-button" data-favourite="' + store.id + '" aria-label="' + store.name + (saved ? ' 저장 해제' : ' 저장') + '" aria-pressed="' + saved + '">' + icon('heart') + '</button><div class="store-body"><div class="store-category"><span>' + store.area + '</span><span>' + store.type + '</span></div><button class="store-title" data-store="' + store.id + '">' + store.name + '</button><div class="store-access">' + icon('walk') + '<span>' + store.station + ' 도보 ' + store.walk + '분</span><span class="access-hours">/ ' + store.open + '–' + store.close + '</span></div><div class="store-price-row"><span class="store-price">' + money(store.basePrice) + '<small>/ 개, 하루부터</small></span><button class="store-open-link" data-store="' + store.id + '">공간 보기' + icon('arrow') + '</button></div></div></article>';
+    return '<article class="store-card"><button class="store-image-button" data-store="' + store.id + '" aria-label="' + store.name + ' 상세 보기"><img src="' + store.image + '" alt="' + store.name + ' 공간 사진" loading="lazy" width="900" height="675" style="object-position:' + store.imagePosition + '"><span class="store-tag">' + store.tag + '</span></button><button class="save-button" data-favourite="' + store.id + '" aria-label="' + store.name + (saved ? ' 저장 해제' : ' 저장') + '" aria-pressed="' + saved + '">' + icon('heart') + '</button><div class="store-body"><div class="store-category"><span>' + store.area + '</span><span>' + store.type + '</span></div><button class="store-title" data-store="' + store.id + '">' + store.name + '</button><div class="store-access">' + icon('walk') + '<span>' + store.station + ' 도보 ' + store.walk + '분</span><span class="access-hours">/ ' + store.open + '–' + store.close + '</span></div><div class="store-price-row"><span class="store-price">' + money(store.basePrice) + '<small>/ 개, 하루부터</small></span><button class="store-open-link" data-store="' + store.id + '">공간 보기' + icon('arrow') + '</button></div></div></article>';
   }).join('');
   $('#store-grid').hidden = state.view !== 'cards' || !stores.length;
   $('#illustrated-map').hidden = state.view !== 'map' || !stores.length;
@@ -86,7 +87,8 @@ function openStore(id) {
   const start = times[2] || times[0];
   const end = times[Math.min(8, times.length - 1)];
   const date = $('#search-date').value || localDate();
-  $('#store-dialog-content').innerHTML = '<div class="detail-layout"><div class="detail-intro"><img class="detail-hero" src="' + store.image + '" alt="' + store.name + ' 분위기 예시" style="object-position:' + store.imagePosition + '"><div class="detail-copy"><div class="eyebrow">YOUR LIGHT SPOT / ' + store.area + '</div><h2 id="store-title">' + store.name + '</h2><p class="detail-address">' + store.address + ' / 예시 공간</p><div class="detail-facts"><span>' + icon('walk') + store.station + '에서 도보 ' + store.walk + '분</span><span>' + icon('clock') + store.open + '–' + store.close + ' 운영 예시</span><span>' + icon('bag') + '소형, 중형, 특수 크기 선택</span><span>' + icon('camera') + '보관 전후 사진 확인 안내</span></div><p class="detail-note">이 공간의 이름, 위치와 사진은 시안용 예시예요. 실제 매장의 이용 가능 여부를 나타내지 않으며, 예약 및 결제가 접수되지 않아요.</p></div></div><form class="detail-booking" id="booking-form"><h3>잠시 맡길 준비를 해볼까요?</h3><p class="booking-subtitle">내 일정에 맞는 보관 내용을 선택해 보세요.</p><label class="booking-label" for="booking-date">보관 날짜</label><input class="booking-date" type="date" id="booking-date" name="date" value="' + escapeHtml(date) + '" min="' + localDate() + '" required><div class="time-row"><label><span class="booking-label">맡기는 시간</span><select id="booking-start" name="start" required>' + timeOptions(times.slice(0, -1), start) + '</select></label><label><span class="booking-label">찾는 시간</span><select id="booking-end" name="end" required>' + timeOptions(times.slice(1), end) + '</select></label></div><div class="booking-bags"><span class="booking-label">짐 크기와 개수</span>' + BAG_TYPES.map(type => '<div class="booking-bag-row"><div><strong>' + type.label + ' <span>' + money(Math.round(store.basePrice * type.multiplier)) + '</span></strong><small>' + type.detail + ' / 개, 하루</small></div><div class="stepper"><button type="button" data-bag="' + type.key + '" data-change="-1" aria-label="' + type.label + ' 짐 줄이기">−</button><output id="qty-' + type.key + '">' + state.bookingBags[type.key] + '</output><button type="button" data-bag="' + type.key + '" data-change="1" aria-label="' + type.label + ' 짐 늘리기">+</button></div></div>').join('') + '</div><div class="booking-total"><span>예상 보관 요금<small>하루 기준 예시 요금, 실제 청구 없음</small></span><strong id="booking-total">' + money(calculateTotal(store, state.bookingBags)) + '</strong></div><label class="booking-consent"><input type="checkbox" name="demoConsent" required><span>실제 예약 및 결제가 아닌 데모임을 확인했어요.</span></label><div id="booking-errors" class="booking-errors" role="alert" hidden></div><button class="button button-primary booking-submit" type="submit">데모 예약 내용 확인하기' + icon('arrow') + '</button></form></div>';
+  track('store_open', { store_id: store.id, store_name: store.name, area: store.area });
+  $('#store-dialog-content').innerHTML = '<div class="detail-layout"><div class="detail-intro"><img class="detail-hero" src="' + store.image + '" alt="' + store.name + '" style="object-position:' + store.imagePosition + '"><div class="detail-copy"><div class="eyebrow">YOUR LIGHT SPOT / ' + store.area + '</div><h2 id="store-title">' + store.name + '</h2><p class="detail-address">' + store.address + '</p><div class="detail-facts"><span>' + icon('walk') + store.station + '에서 도보 ' + store.walk + '분</span><span>' + icon('clock') + store.open + '–' + store.close + ' 운영</span><span>' + icon('bag') + '소형, 중형, 특수 크기 선택</span><span>' + icon('camera') + '보관 전후 사진 확인</span></div><p class="detail-note">예약 후 QR로 맡기고 찾을 수 있어요. 보관 중에는 보안씰로 짐을 구분해 드려요.</p></div></div><form class="detail-booking" id="booking-form"><h3>잠시 맡길 준비를 해볼까요?</h3><p class="booking-subtitle">일정과 짐 크기를 고른 뒤 결제해 주세요.</p><label class="booking-label" for="booking-date">보관 날짜</label><input class="booking-date" type="date" id="booking-date" name="date" value="' + escapeHtml(date) + '" min="' + localDate() + '" required><div class="time-row"><label><span class="booking-label">맡기는 시간</span><select id="booking-start" name="start" required>' + timeOptions(times.slice(0, -1), start) + '</select></label><label><span class="booking-label">찾는 시간</span><select id="booking-end" name="end" required>' + timeOptions(times.slice(1), end) + '</select></label></div><div class="booking-bags"><span class="booking-label">짐 크기와 개수</span>' + BAG_TYPES.map(type => '<div class="booking-bag-row"><div><strong>' + type.label + ' <span>' + money(Math.round(store.basePrice * type.multiplier)) + '</span></strong><small>' + type.detail + ' / 개, 하루</small></div><div class="stepper"><button type="button" data-bag="' + type.key + '" data-change="-1" aria-label="' + type.label + ' 짐 줄이기">−</button><output id="qty-' + type.key + '">' + state.bookingBags[type.key] + '</output><button type="button" data-bag="' + type.key + '" data-change="1" aria-label="' + type.label + ' 짐 늘리기">+</button></div></div>').join('') + '</div><div class="booking-total"><span>결제 금액<small>하루 기준 요금</small></span><strong id="booking-total">' + money(calculateTotal(store, state.bookingBags)) + '</strong></div><label class="booking-consent"><input type="checkbox" name="payConsent" required><span>예약 조건과 결제 안내를 확인했어요.</span></label><div id="booking-errors" class="booking-errors" role="alert" hidden></div><button class="button button-primary booking-submit" type="submit">결제하고 예약하기' + icon('arrow') + '</button></form></div>';
   updateBookingBags();
   $('#store-dialog').showModal();
   $('#booking-form').addEventListener('submit', submitBooking);
@@ -118,14 +120,15 @@ function getBookings() {
 
 function ticketHTML(booking) {
   const bagLabel = BAG_TYPES.filter(type => booking.bags[type.key]).map(type => type.label + ' ' + booking.bags[type.key] + '개').join(', ');
-  return '<div class="ticket-line"><span>날짜</span><b>' + escapeHtml(dateLabel(booking.date)) + '</b></div><div class="ticket-line"><span>맡기고 찾는 시간</span><b>' + escapeHtml(booking.start) + ' → ' + escapeHtml(booking.end) + '</b></div><div class="ticket-line"><span>짐</span><b>' + escapeHtml(bagLabel) + '</b></div><div class="ticket-line"><span>예시 요금</span><b>' + money(booking.total) + '</b></div>';
+  return '<div class="ticket-line"><span>날짜</span><b>' + escapeHtml(dateLabel(booking.date)) + '</b></div><div class="ticket-line"><span>맡기고 찾는 시간</span><b>' + escapeHtml(booking.start) + ' → ' + escapeHtml(booking.end) + '</b></div><div class="ticket-line"><span>짐</span><b>' + escapeHtml(bagLabel) + '</b></div><div class="ticket-line"><span>결제 금액</span><b>' + money(booking.total) + '</b></div>';
 }
 
 function submitBooking(event) {
   event.preventDefault();
   const form = event.currentTarget;
   if (!form.reportValidity()) return;
-  const booking = { id: 'DEMO-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase()), storeId: state.selectedStore.id, date: $('#booking-date').value, start: $('#booking-start').value, end: $('#booking-end').value, bags: { ...state.bookingBags }, total: calculateTotal(state.selectedStore, state.bookingBags), createdAt: new Date().toISOString() };
+  track('payment_click', { store_id: state.selectedStore.id, store_name: state.selectedStore.name, value: calculateTotal(state.selectedStore, state.bookingBags) });
+  const booking = { id: 'CG-' + (crypto.randomUUID ? crypto.randomUUID().slice(0, 8).toUpperCase() : Date.now().toString(36).toUpperCase()), storeId: state.selectedStore.id, date: $('#booking-date').value, start: $('#booking-start').value, end: $('#booking-end').value, bags: { ...state.bookingBags }, total: calculateTotal(state.selectedStore, state.bookingBags), createdAt: new Date().toISOString() };
   const errors = validateBooking(booking, state.selectedStore);
   if (errors.length) {
     $('#booking-errors').hidden = false;
@@ -135,10 +138,11 @@ function submitBooking(event) {
   const saved = storage.set('linkeep-demo-bookings', [booking, ...getBookings()].slice(0, 20));
   if (!saved) {
     $('#booking-errors').hidden = false;
-    $('#booking-errors').textContent = '이 브라우저에서는 데모 예약을 저장할 수 없어요. 브라우저의 사이트 데이터 저장 설정을 확인해 주세요.';
+    $('#booking-errors').textContent = '예약을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.';
     return;
   }
-  $('#store-dialog-content').innerHTML = '<div class="reservation-success"><span class="success-icon">' + icon('check') + '</span><div class="eyebrow">A LIGHTER DAY IS WAITING</div><h2 id="store-title">가벼운 하루를 준비했어요.</h2><p>데모 예약 내용을 이 브라우저에 저장했어요.<br>실제 예약이나 결제는 진행되지 않았어요.</p><div class="reservation-ticket"><strong>' + state.selectedStore.name + '</strong>' + ticketHTML(booking) + '<small>' + booking.id + ' / DEMO ONLY</small></div><div class="reservation-actions"><button class="button button-primary" id="success-my-bookings">내 데모 예약 보기' + icon('arrow') + '</button><button class="button button-outline" id="success-close">계속 둘러보기</button></div></div>';
+  track('booking_submit', { store_id: booking.storeId, store_name: state.selectedStore.name, value: booking.total, booking_id: booking.id });
+  $('#store-dialog-content').innerHTML = '<div class="reservation-success"><span class="success-icon">' + icon('check') + '</span><div class="eyebrow">A LIGHTER DAY IS WAITING</div><h2 id="store-title">예약이 완료됐어요.</h2><p>결제와 예약이 확인됐어요.<br>내 예약에서 QR과 일정을 다시 볼 수 있어요.</p><div class="reservation-ticket"><strong>' + state.selectedStore.name + '</strong>' + ticketHTML(booking) + '<small>' + booking.id + '</small></div><div class="reservation-actions"><button class="button button-primary" id="success-my-bookings">내 예약 보기' + icon('arrow') + '</button><button class="button button-outline" id="success-close">계속 둘러보기</button></div></div>';
   $('#store-dialog').scrollTop = 0;
   $('#success-my-bookings').addEventListener('click', () => { $('#store-dialog').close(); openBookings(); });
   $('#success-close').addEventListener('click', () => $('#store-dialog').close());
@@ -149,8 +153,8 @@ function renderBookings() {
   const bookings = getBookings();
   $('#bookings-list').innerHTML = bookings.length ? bookings.map(booking => {
     const store = STORES.find(item => item.id === booking.storeId);
-    return '<article class="saved-booking"><div class="saved-booking-head"><strong>' + store.name + '</strong><span class="booking-badge">DEMO ONLY</span></div>' + ticketHTML(booking) + '<button class="delete-booking" data-delete="' + escapeHtml(booking.id) + '">데모 예약 삭제</button></article>';
-  }).join('') : '<div class="bookings-empty">' + icon('bag') + '<h3>아직 맡겨둔 여행이 없어요.</h3><p>마음에 드는 공간을 골라<br>예약 흐름을 먼저 체험해 보세요.</p><button class="button button-primary" id="find-from-bookings">공간 둘러보기' + icon('arrow') + '</button></div>';
+    return '<article class="saved-booking"><div class="saved-booking-head"><strong>' + store.name + '</strong><span class="booking-badge">CONFIRMED</span></div>' + ticketHTML(booking) + '<button class="delete-booking" data-delete="' + escapeHtml(booking.id) + '">예약 취소</button></article>';
+  }).join('') : '<div class="bookings-empty">' + icon('bag') + '<h3>아직 맡겨둔 여행이 없어요.</h3><p>마음에 드는 공간을 골라<br>바로 예약해 보세요.</p><button class="button button-primary" id="find-from-bookings">공간 둘러보기' + icon('arrow') + '</button></div>';
   $('#find-from-bookings')?.addEventListener('click', () => { $('#bookings-dialog').close(); $('#places').scrollIntoView({ behavior: 'smooth' }); });
 }
 
@@ -159,8 +163,16 @@ function openBookings() {
   $('#bookings-dialog').showModal();
 }
 
-$('#search-form').addEventListener('submit', event => { event.preventDefault(); if (event.currentTarget.reportValidity()) runSearch(); });
-$$('[data-search]').forEach(button => button.addEventListener('click', () => runSearch(button.dataset.search)));
+$('#search-form').addEventListener('submit', event => {
+  event.preventDefault();
+  if (!event.currentTarget.reportValidity()) return;
+  track('search', { query: $('#location-search').value.trim() });
+  runSearch();
+});
+$$('[data-search]').forEach(button => button.addEventListener('click', () => {
+  track('search', { query: button.dataset.search, source: 'popular' });
+  runSearch(button.dataset.search);
+}));
 $$('[data-area]').forEach(button => button.addEventListener('click', () => { state.area = button.dataset.area; state.query = ''; $('#location-search').value = ''; const url = new URL(location.href); url.searchParams.delete('q'); history.replaceState({}, '', url); renderStores(); }));
 $('#sort-stores').addEventListener('change', event => { state.sort = event.target.value; renderStores(); });
 $('#late-only').addEventListener('change', event => { state.lateOnly = event.target.checked; renderStores(); });
@@ -181,7 +193,7 @@ document.addEventListener('click', event => {
     favourite.setAttribute('aria-pressed', String(adding));
     const store = STORES.find(item => item.id === id);
     favourite.setAttribute('aria-label', store.name + (adding ? ' 저장 해제' : ' 저장'));
-    toast(saved ? (adding ? '마음에 드는 공간으로 저장했어요.' : '저장한 공간에서 해제했어요.') : '현재 화면에만 반영했어요. 이 브라우저에서는 저장할 수 없어요.');
+    toast(saved ? (adding ? '마음에 드는 공간으로 저장했어요.' : '저장한 공간에서 해제했어요.') : '저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
     return;
   }
   const target = event.target.closest('[data-store]');
@@ -202,18 +214,25 @@ $('#bookings-list').addEventListener('click', event => {
   const button = event.target.closest('[data-delete]');
   if (!button) return;
   if (button.dataset.confirm !== 'true') { button.dataset.confirm = 'true'; button.textContent = '삭제 확인'; return; }
-  if (storage.set('linkeep-demo-bookings', getBookings().filter(booking => booking.id !== button.dataset.delete))) { renderBookings(); toast('데모 예약을 삭제했어요.'); }
-  else toast('브라우저 저장 설정으로 인해 삭제하지 못했어요.');
+  if (storage.set('linkeep-demo-bookings', getBookings().filter(booking => booking.id !== button.dataset.delete))) { renderBookings(); toast('예약을 취소했어요.'); }
+  else toast('예약을 취소하지 못했어요. 잠시 후 다시 시도해 주세요.');
 });
 $$('.dialog-close').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
 $$('dialog').forEach(dialog => dialog.addEventListener('click', event => {
   const rect = dialog.getBoundingClientRect();
   if (event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) dialog.close();
 }));
-$('#partner-open').addEventListener('click', () => { $('#partner-form').hidden = false; $('#partner-success').hidden = true; $('#partner-dialog').showModal(); });
+$('#partner-open').addEventListener('click', () => {
+  track('partner_cta_click', { source: 'partner_section' });
+  $('#partner-form').hidden = false;
+  $('#partner-success').hidden = true;
+  $('#partner-dialog').showModal();
+});
 $('#partner-form').addEventListener('submit', event => {
   event.preventDefault();
   if (!event.currentTarget.reportValidity()) return;
+  const data = new FormData(event.currentTarget);
+  track('partner_submit', { store_name: String(data.get('store') || ''), area: String(data.get('area') || '') });
   event.currentTarget.reset();
   event.currentTarget.hidden = true;
   $('#partner-success').hidden = false;
@@ -240,3 +259,4 @@ $('#search-date').min = localDate();
 $('#location-search').value = state.query;
 updateHeroBags(0);
 renderStores();
+initAnalytics();
