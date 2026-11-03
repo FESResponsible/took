@@ -1,5 +1,12 @@
+import { copyContextFor } from './model.js';
+
 const STORAGE_KEY = 'chaegim-mvp-events';
 const MAX_LOCAL = 200;
+let copyContext = copyContextFor('tourism');
+
+export function setCopyContext(mode) {
+  copyContext = copyContextFor(mode);
+}
 
 function config() {
   return window.CHAEGIM_ANALYTICS || {};
@@ -69,7 +76,7 @@ function ensureMeta(id) {
 export function track(eventName, params = {}) {
   const cfg = config();
   const attribution = storageGet('chaegim-mvp-attribution', {});
-  const payload = { ...attribution, ...params, demo: true };
+  const payload = { ...attribution, ...params, ...copyContext, demo: true };
   saveLocal(eventName, payload);
   if (cfg.debug) console.info('[CHAEGIM track]', eventName, payload);
 
@@ -85,8 +92,9 @@ export function track(eventName, params = {}) {
       partner_cta_click: 'Lead',
       partner_submit: 'CompleteRegistration',
       store_open: 'ViewContent',
-      payment_click: 'InitiateCheckout',
-      booking_submit: 'Purchase'
+      reserve_click: 'AddToCart',
+      booking_submit: 'InitiateCheckout',
+      survey_submit: 'SubmitApplication'
     };
     const metaEvent = metaMap[eventName] || 'CustomEvent';
     if (metaEvent === 'Purchase') {
