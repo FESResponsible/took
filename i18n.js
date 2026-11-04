@@ -32,9 +32,9 @@ const MESSAGES = {
   'nav.footerGuide': L('이용 안내', 'Help', '使用说明', '使用說明'),
   'hero.alt': L('노란 캐리어를 끌며 서울의 햇살 가득한 한옥 골목을 걷는 여행자', 'A traveler pulling a yellow suitcase through a sunny hanok alley in Seoul', '旅客拖着黄色行李箱，走在首尔阳光充足的韩屋巷弄', '旅客拖著黃色行李箱，走在首爾陽光充足的韓屋巷弄'),
   'hero.note': L('앱 설치 없이 예약하고, QR로 간편하게.', 'Book without an app, then show your QR code.', '不用安装应用，出示二维码即可。', '不用安裝應用程式，出示 QR code 即可。'),
-  'hero.ticketSoft': L('손은 가볍게, 하루는 자유롭게', 'Hands free, day open', '双手轻松，一天自在', '雙手輕鬆，一天自在'),
+  'hero.ticketSoft': L('손은 가볍게, 하루는 자유롭게', 'Hands free. More to explore.', '双手轻松，一天自在', '雙手輕鬆，一天自在'),
   'hero.ticketStrong': L('맡기고. 즐기고. 다시 찾고.', 'Drop it. Enjoy. Pick it up.', '寄存。游玩。再取回。', '寄存。遊玩。再取回。'),
-  'search.where': L('어디에 맡길까요?', 'Where should we store it?', '想寄存在哪里？', '想寄存在哪裡？'),
+  'search.where': L('어디에 맡길까요?', 'Where do you need storage?', '想寄存在哪里？', '想寄存在哪裡？'),
   'search.placeholder': L('지역, 동네 이름', 'City or neighborhood', '城市或商圈', '城市或商圈'),
   'search.here': L('현재 위치', 'Current location', '当前位置', '目前位置'),
   'search.date': L('보관 날짜', 'Storage date', '寄存日期', '寄存日期'),
@@ -144,7 +144,7 @@ const MESSAGES = {
   'faq.a6': L('‘내 예약’에서 예약을 관리할 수 있어요. 이용 직전에 변경이 필요하면 예약 상세의 안내에 따라 진행해 주세요.', 'Manage the booking in My bookings. If you need a change just before use, follow the note in the booking detail.', '可在“我的预约”里管理。临近使用前要更改，请按预约详情中的说明进行。', '可在「我的預約」裡管理。臨近使用前要更改，請按預約詳情中的說明進行。'),
   'faq.q7': L('우리 매장도 파트너로 참여할 수 있나요?', 'Can our shop join as a partner?', '我们的店可以加入合作吗？', '我們的店可以加入合作嗎？'),
   'faq.a7': L('네. 아래 ‘파트너로 함께하기’에서 매장 정보를 남겨 주시면, 확인 후 안내드릴게요.', 'Yes. Leave your shop details under Join as a partner, and we will reply after checking them.', '可以。请在下方“成为合作伙伴”留下店铺信息，确认后会与您联系。', '可以。請在下方「成為合作夥伴」留下店家資訊，確認後會與您聯絡。'),
-  'closing.head': L('짐은 툭', 'Drop your bags', '行李轻放', '行李輕放'),
+  'closing.head': L('짐은 툭', 'Drop your bags.', '行李轻放', '行李輕放'),
   'footer.dev': L('개발자', 'Developer', '开发者', '開發者'),
   'dev.kicker': L('DEVELOPER', 'DEVELOPER', 'DEVELOPER', 'DEVELOPER'),
   'dev.title': L('개발자 모드', 'Developer mode', '开发者模式', '開發者模式'),
@@ -314,7 +314,7 @@ const MESSAGES = {
   'error.order': L('찾는 시간을 시작 시간보다 늦게 선택해 주세요.', 'Choose a pickup time later than the start time.', '取回时间要晚于开始时间。', '取回時間要晚於開始時間。'),
   'error.generic': L('내용을 다시 확인해 주세요.', 'Please check this again.', '请再确认这项内容。', '請再確認這項內容。'),
   'copy.title': C(
-    L('TooK — 짐은 툭, 여행은 쭉', 'TooK — Drop your bags, keep the trip', 'TooK — 行李轻放，旅程继续', 'TooK — 行李輕放，旅程繼續'),
+    L('TooK — 짐은 툭, 여행은 쭉', 'TooK — Drop your bags. Keep exploring.', 'TooK — 行李轻放，旅程继续', 'TooK — 行李輕放，旅程繼續'),
     L('TooK — 짐은 툭, 오늘은 가볍게', 'TooK — Drop your bags, lighten today', 'TooK — 行李轻放，今天轻松', 'TooK — 行李輕放，今天輕鬆')
   ),
   'copy.meta': C(
@@ -322,7 +322,7 @@ const MESSAGES = {
     L('쇼핑하다 늘어난 쇼핑백도, 다음 약속까지 들고 다니기 부담스러운 가방도. 가까운 공간에 잠시 맡기고 오늘을 가볍게 즐기세요. TooK.', 'Shopping bags pile up, and some bags are too much to carry to the next plan. Leave them nearby and enjoy a lighter day. TooK.', '购物袋越来越多，下一场约定前也不想一直提着。先寄存在附近，轻松过今天。TooK.', '購物袋越來越多，下一場約定前也不想一直提著。先寄存在附近，輕鬆過今天。TooK.')
   ),
   'copy.hero-title': C(
-    L('짐은 툭,<br>여행은 <span class="underlined">쭉</span>', 'Drop your bags,<br>keep the <span class="underlined">trip</span>', '行李轻放，<br>旅程<span class="underlined">继续</span>', '行李輕放，<br>旅程<span class="underlined">繼續</span>'),
+    L('짐은 툭,<br>여행은 <span class="underlined">쭉</span>', 'Drop your bags.<br>Keep <span class="underlined">exploring</span>.', '行李轻放，<br>旅程<span class="underlined">继续</span>', '行李輕放，<br>旅程<span class="underlined">繼續</span>'),
     L('짐은 툭,<br>오늘은 <span class="underlined">가볍게</span>', 'Drop your bags,<br>lighten <span class="underlined">today</span>', '行李轻放，<br>今天<span class="underlined">轻松</span>', '行李輕放，<br>今天<span class="underlined">輕鬆</span>')
   ),
   'copy.hero-description': C(
@@ -330,7 +330,7 @@ const MESSAGES = {
     L('쇼핑하다 늘어난 쇼핑백도, 다음 약속까지 들고 다니기 부담스러운 가방도.<br>가까운 공간에 잠시 맡기고 오늘을 가볍게 즐기세요.', 'Shopping bags pile up, and some bags are too much to carry to the next plan.<br>Leave them nearby and enjoy a lighter day.', '购物袋越来越多，下一场约定前也不想一直提着。<br>先寄存在附近，轻松过今天。', '購物袋越來越多，下一場約定前也不想一直提著。<br>先寄存在附近，輕鬆過今天。')
   ),
   'copy.hero-cta': C(
-    L('여행지 근처 보관 장소 찾기', 'Find storage near your trip', '查找旅途附近的寄存点', '尋找旅途附近的寄存點'),
+    L('여행지 근처 보관 장소 찾기', 'Find luggage storage nearby', '查找旅途附近的寄存点', '尋找旅途附近的寄存點'),
     L('가까운 보관 장소 찾기', 'Find storage nearby', '查找附近的寄存点', '尋找附近的寄存點')
   ),
   'copy.story-heading': C(
@@ -415,8 +415,8 @@ const MESSAGES = {
     L('남는 공간으로 여행객을 맞이하는 새로운 방법.', 'A new way for spare space to welcome travelers.', '用空余空间迎接旅客的新方式。', '用空餘空間迎接旅客的新方式。'),
     L('남는 공간으로 오늘을 가볍게 보내는 사람을 맞이해요.', 'Spare space can welcome someone who wants a lighter day.', '用空余空间，迎接想轻松过今天的人。', '用空餘空間，迎接想輕鬆過今天的人。')
   ),
-  'copy.closing-tail': C(L('여행은 쭉', 'Keep the trip', '旅程继续', '旅程繼續'), L('오늘은 가볍게', 'Lighten today', '今天轻松', '今天輕鬆')),
-  'copy.footer-slogan': C(L('짐은 툭, 여행은 쭉.', 'Drop your bags, keep the trip.', '行李轻放，旅程继续。', '行李輕放，旅程繼續。'), L('짐은 툭, 오늘은 가볍게.', 'Drop your bags, lighten today.', '行李轻放，今天轻松。', '行李輕放，今天輕鬆。')),
+  'copy.closing-tail': C(L('여행은 쭉', 'Keep exploring.', '旅程继续', '旅程繼續'), L('오늘은 가볍게', 'Lighten today', '今天轻松', '今天輕鬆')),
+  'copy.footer-slogan': C(L('짐은 툭, 여행은 쭉.', 'Drop your bags. Keep exploring.', '行李轻放，旅程继续。', '行李輕放，旅程繼續。'), L('짐은 툭, 오늘은 가볍게.', 'Drop your bags, lighten today.', '行李轻放，今天轻松。', '行李輕放，今天輕鬆。')),
   'copy.footer-line': C(
     L('가까운 공간에 맡기고 남은 여행을 가볍게 이어가세요.', 'Leave bags nearby and keep the rest of the trip light.', '寄存在附近，让剩下的旅程轻一点。', '寄存在附近，讓剩下的旅程輕一點。'),
     L('가까운 공간에 잠시 맡기고 오늘을 가볍게 즐기세요.', 'Leave them nearby for a while and enjoy a lighter day.', '先寄存在附近，轻松过今天。', '先寄存在附近，輕鬆過今天。')
