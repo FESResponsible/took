@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea } from './model.js';
-import { initAnalytics, setCopyContext, track } from './analytics.js';
-import { t, copyPack, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea } from './model.js?v=705ea11f4f53';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=5db4fb3ae986';
+import { t, copyPack, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=9aa424288ec5';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
