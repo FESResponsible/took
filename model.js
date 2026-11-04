@@ -1,5 +1,6 @@
 import { SPACES } from './spaces.js';
 import { MAP_SPACES } from './map-spaces.js';
+import { placeSearchText } from './i18n.js';
 
 export const SHOW_REAL_NAMES = true;
 export const PRICING = {
@@ -341,7 +342,7 @@ export function billedHours(start, end) {
 export function filterStores({ query = '', area = '전체', category = '전체', sort = 'recommended', origin = null, nearOnly = false, hours24 = false, cold = false } = {}) {
   const tokens = query.trim().toLowerCase().replace(/역/g, '').split(/\s+/).filter(Boolean);
   let matches = STORES.filter(store => {
-    const searchable = (store.searchText + ' ' + store.name + ' ' + store.type).toLowerCase().replace(/역/g, '');
+    const searchable = (store.searchText + ' ' + store.name + ' ' + store.type + ' ' + placeSearchText(store)).toLowerCase().replace(/역/g, '');
     const areaOk = area === '전체' || store.area === area || store.city === area || store.district === area;
     const categoryOk = category === '전체' || store.type === category;
     return areaOk && categoryOk && tokens.every(token => searchable.includes(token)) && (!hours24 || store.hours24) && (!cold || store.cold);

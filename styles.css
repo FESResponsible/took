@@ -299,3 +299,18 @@ body{background:#fff}
 .persona-card:first-child li:before,.needs-grid article:first-child li:before{background:#7EBEFF;box-shadow:0 0 0 3px rgba(184,226,255,.55)}
 @media(hover:hover){.persona-card,.needs-grid article{transition:transform .4s cubic-bezier(.2,.7,.2,1),box-shadow .4s cubic-bezier(.2,.7,.2,1)}.persona-card:hover,.needs-grid article:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 28px 56px rgba(36,55,75,.1)}}
 @media(prefers-reduced-motion:reduce){.persona-card,.needs-grid article{transition:none}}
+.site-header{height:auto;min-height:72px}
+.header-inner{height:auto;min-height:72px;flex-wrap:wrap;row-gap:8px}
+.header-actions{flex-wrap:wrap;justify-content:flex-end;row-gap:6px}
+.lang-switch{min-width:0}
+.lang-options{display:flex;flex-wrap:wrap;gap:4px}
+.lang-options button{border-radius:999px;padding:6px 9px;font-size:12px;font-weight:600;line-height:1.2;color:#5E7388}
+.lang-options button[aria-checked="true"]{background:#2476B5;color:#fff}
+.mobile-nav .lang-switch{display:block;padding:4px 0 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+html[lang="en"] h1,html[lang="en"] h2,html[lang="en"] h3,html[lang="en"] p,html[lang="en"] button,html[lang="en"] a,html[lang="en"] label,html[lang="en"] summary,html[lang^="zh"] h1,html[lang^="zh"] h2,html[lang^="zh"] h3,html[lang^="zh"] p,html[lang^="zh"] button,html[lang^="zh"] a,html[lang^="zh"] label,html[lang^="zh"] summary{word-break:normal;overflow-wrap:anywhere}
+html[lang="en"] .hero h1,html[lang^="zh"] .hero h1{width:auto;max-width:100%;font-size:clamp(34px,4.4vw,56px);letter-spacing:-1.2px;line-height:1.2}
+html[lang="en"] .closing-line,html[lang^="zh"] .closing-line{font-size:clamp(18px,2.4vw,32px);gap:12px;flex-wrap:wrap}
+html[lang="en"] .floating-ticket,html[lang^="zh"] .floating-ticket{min-width:0;max-width:min(420px,100%)}
+html[lang="en"] .partner-section .button,html[lang^="zh"] .partner-section .button{white-space:normal}
+@media(max-width:1100px){.site-header .lang-options button{font-size:11px;padding:5px 7px}}
+@media(max-width:680px){.site-header{height:auto;min-height:72px}.site-header .header-actions{flex:1 1 auto}.site-header .lang-switch{flex-basis:100%}.site-header .lang-options{width:100%}html[lang="en"] .hero h1,html[lang^="zh"] .hero h1{font-size:34px;letter-spacing:-.8px}}
