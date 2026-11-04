@@ -1,3 +1,5 @@
+import { localizeProper } from './names.js?v=0bc48b5de0ea';
+
 // UI 언어 사전. 화면 선택지는 LOCALES만 쓴다. es, fr, de는 같은 칸에 값을 더하면 나중에 켤 수 있다.
 const LOCALES = [
   { id: 'ko', lang: 'ko', label: '한국어' },
@@ -616,9 +618,10 @@ export function hasMessage(key) {
 export function labelPlace(name) {
   if (!name) return '';
   if (name === '전체') return t('filter.all');
+  if (current === 'ko') return name;
   const place = PLACES[name];
-  if (!place || current === 'ko') return name;
-  return place[current] || name;
+  if (place && place[current]) return place[current];
+  return localizeProper(name, current);
 }
 
 export function placeSearchText(store) {
@@ -628,6 +631,13 @@ export function placeSearchText(store) {
     const place = PLACES[name];
     if (!place) return;
     bits.push(place.en, place['zh-Hans'], place['zh-Hant'], ...(place.aliases || []));
+  });
+  const fields = [store && store.nearby, store && store.placeLabel, store && store.addressShort, store && store.district, store && store.city, store && store.area];
+  if (store && store.showMaps) fields.push(store.realName, store.address);
+  ['en', 'zh-Hans', 'zh-Hant'].forEach(locale => {
+    fields.forEach(field => {
+      if (field) bits.push(localizeProper(field, locale));
+    });
   });
   return bits.filter(Boolean).join(' ');
 }
@@ -641,8 +651,12 @@ export function formatHiddenName(store) {
 
 export function displayName(store) {
   if (!store) return '';
-  if (store.showMaps) return store.realName || store.name || '';
+  if (store.showMaps) return localizeProper(store.realName || store.name || '', current);
   return formatHiddenName(store);
+}
+
+export function formatAddress(text) {
+  return localizeProper(text, current);
 }
 
 const NUMBER_TAG = { ko: 'ko-KR', en: 'en-US', 'zh-Hans': 'zh-Hans-CN', 'zh-Hant': 'zh-Hant-TW' };
@@ -680,8 +694,8 @@ export function formatHours(text) {
 export function formatAccess(label) {
   const text = String(label || '');
   const match = text.match(/^(.+?)에서 도보 (\d+)분$/);
-  if (!match) return labelPlace(text);
-  return t('access.walk', { place: match[1], min: formatNumber(match[2]) });
+  if (!match) return localizeProper(text, current);
+  return t('access.walk', { place: localizeProper(match[1], current), min: formatNumber(match[2]) });
 }
 
 export function unitPhrase(count, kind) {
