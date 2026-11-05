@@ -1,17 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { BookingCard } from '@/components/BookingCard';
 import { Icon, type IconName } from '@/components/icons';
 import { monthPeriod, summarizeSettlement } from '@/domain/settlement';
 import { toDateKey } from '@/domain/time';
-import { isPickupOverdue } from '@/domain/transitions';
-import type { Booking } from '@/domain/types';
 import { usePartner } from '@/state/PartnerProvider';
 import { selectToday } from '@/state/selectors';
-import { formatKrw, formatRemaining, formatTime } from '@/ui/format';
-import { REASON_LABEL } from '@/ui/labels';
+import { formatKrw } from '@/ui/format';
+import { todayLists } from './today/lists';
 
 const QUICK: ReadonlyArray<{ href: string; label: string; icon: IconName; tone: string }> = [
   { href: '/bookings', label: '예약', icon: 'calendar', tone: 'cyan' },
@@ -21,58 +17,15 @@ const QUICK: ReadonlyArray<{ href: string; label: string; icon: IconName; tone: 
   { href: '/scan', label: 'QR 확인', icon: 'qr', tone: 'mint' },
 ];
 
-type FoldId = 'storage' | 'arriving' | 'pending' | 'noshow';
-
 export default function TodayPage() {
   const { state, now } = usePartner();
   const view = selectToday(state.bookings, now, state.policy);
-  const [open, setOpen] = useState<FoldId | null>(null);
-  const msUntil = (iso: string) => Date.parse(iso) - now.getTime();
-
-  const sections: { id: FoldId; label: string; items: { booking: Booking; hint: string; hintTone: 'warn' | 'muted' }[] }[] = [
-    {
-      id: 'storage',
-      label: '보관 중',
-      items: view.inStorage.map((booking) => ({
-        booking,
-        hint: isPickupOverdue(booking, now) ? '찾으러 올 시간이 지났어요' : `${formatTime(booking.pickUpAt)}에 찾으러 와요`,
-        hintTone: isPickupOverdue(booking, now) ? ('warn' as const) : ('muted' as const),
-      })),
-    },
-    {
-      id: 'arriving',
-      label: '금일 방문 예정',
-      items: view.arrivingToday.map((booking) => ({
-        booking,
-        hint: formatRemaining(msUntil(booking.dropOffAt)).replace('남음', '뒤 도착'),
-        hintTone: 'muted' as const,
-      })),
-    },
-    {
-      id: 'pending',
-      label: '확인 필요',
-      items: view.pending.map((booking) => ({
-        booking,
-        hint: `${booking.approvalReasons.map((reason) => REASON_LABEL[reason]).join(', ')} · ${formatRemaining(msUntil(booking.approvalDeadline ?? booking.createdAt))}`,
-        hintTone: 'warn' as const,
-      })),
-    },
-    {
-      id: 'noshow',
-      label: '노쇼 관리',
-      items: view.noShowCandidates.map((booking) => ({
-        booking,
-        hint: `${formatTime(booking.dropOffAt)} 예약 · 노쇼로 처리할 수 있어요`,
-        hintTone: 'warn' as const,
-      })),
-    },
-  ];
+  const sections = todayLists(state.bookings, now, state.policy);
 
   const todayKey = toDateKey(now);
   const todayBookings = state.bookings.filter((booking) => toDateKey(new Date(booking.dropOffAt)) === todayKey);
   const handled = todayBookings.filter((booking) => booking.status === 'completed' || booking.status === 'no_show').length;
   const monthTotal = summarizeSettlement(state.bookings, monthPeriod(now), state.policy).totalKrw;
-  const openSection = sections.find((section) => section.id === open) ?? null;
 
   return (
     <>
@@ -109,27 +62,13 @@ export default function TodayPage() {
       <section className="section">
         <h2 className="section-title">예약 현황 보기</h2>
         <div className="tile-grid">
-          {sections.map((section) => {
-            const expanded = open === section.id;
-            return (
-              <button key={section.id} type="button" className={`tile${expanded ? ' is-open' : ''}`} aria-expanded={expanded} onClick={() => setOpen(expanded ? null : section.id)}>
-                <span className="tile-count">{section.items.length}</span>
-                <span className="tile-label">{section.label}</span>
-              </button>
-            );
-          })}
+          {sections.map((section) => (
+            <Link key={section.id} href={section.href} className="tile">
+              <span className="tile-count">{section.items.length}</span>
+              <span className="tile-label">{section.label}</span>
+            </Link>
+          ))}
         </div>
-        {openSection ? (
-          openSection.items.length === 0 ? (
-            <p className="empty">예약이 없어요.</p>
-          ) : (
-            <div className="stack">
-              {openSection.items.map((item) => (
-                <BookingCard key={item.booking.id} booking={item.booking} now={now} hint={item.hint} hintTone={item.hintTone} />
-              ))}
-            </div>
-          )
-        ) : null}
       </section>
     </>
   );
