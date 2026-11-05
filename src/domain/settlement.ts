@@ -33,6 +33,14 @@ export function monthPeriod(date: Date): Period {
   };
 }
 
+/** 지금까지 정산된 전체 기간. 오늘 자정 전까지이며, 실제 입금이 아닌 데모 합계다. */
+export function lifetimePeriod(date: Date): Period {
+  return {
+    from: new Date(0),
+    to: new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1),
+  };
+}
+
 function inPeriod(iso: string, period: Period): boolean {
   const time = Date.parse(iso);
   return time >= period.from.getTime() && time < period.to.getTime();

@@ -154,16 +154,19 @@ a { color: inherit; text-decoration: none; }
 .section-desc { font-size: 13px; color: var(--muted); }
 .home-strip {
   display: grid;
-  grid-template-columns: 1fr 0.82fr 1.25fr;
+  grid-template-columns: 1fr 1fr;
   background: var(--card);
   border-radius: 18px;
   box-shadow: var(--shadow);
 }
-.home-stat { min-width: 0; padding: 14px 8px 12px; text-align: center; }
-.home-stat + .home-stat { box-shadow: inset 1px 0 0 var(--line); }
+.home-stat { min-width: 0; padding: 14px 10px 12px; text-align: center; }
+.home-stat:nth-child(even) { box-shadow: inset 1px 0 0 var(--line); }
+.home-stat:nth-child(n + 3) { box-shadow: inset 0 1px 0 var(--line); }
+.home-stat:nth-child(4) { box-shadow: inset 1px 0 0 var(--line), inset 0 1px 0 var(--line); }
 .home-stat-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: -0.4px; line-height: 1.3; }
 .home-stat-value { margin-top: 6px; font-size: 22px; font-weight: 800; letter-spacing: -0.7px; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.home-stat-value.is-money { font-size: 16px; letter-spacing: -0.5px; }
+.home-stat-value.is-money { font-size: 20px; letter-spacing: -0.6px; }
+.home-stat-value.is-lifetime { color: #08CBAA; }
 .home-stat-sub { margin-top: 4px; font-size: 12px; font-weight: 700; color: #087A72; font-variant-numeric: tabular-nums; }
 .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .tile {

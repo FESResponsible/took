@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AppMark, type AppMarkName } from '@/components/AppMark';
-import { monthPeriod, summarizeSettlement } from '@/domain/settlement';
+import { lifetimePeriod, monthPeriod, summarizeSettlement } from '@/domain/settlement';
 import { toDateKey } from '@/domain/time';
 import { usePartner } from '@/state/PartnerProvider';
 import { selectToday } from '@/state/selectors';
@@ -33,6 +33,7 @@ export default function TodayPage() {
   const todayBookings = state.bookings.filter((booking) => toDateKey(new Date(booking.dropOffAt)) === todayKey);
   const handled = todayBookings.filter((booking) => booking.status === 'completed' || booking.status === 'no_show').length;
   const monthTotal = summarizeSettlement(state.bookings, monthPeriod(now), state.policy).totalKrw;
+  const lifetimeTotal = summarizeSettlement(state.bookings, lifetimePeriod(now), state.policy).totalKrw;
   const accepting = state.settings.pausedOn !== todayKey;
   const nextDropOff = state.bookings
     .filter((booking) => (booking.status === 'confirmed' || booking.status === 'pending_approval') && Date.parse(booking.dropOffAt) > now.getTime())
@@ -59,6 +60,11 @@ export default function TodayPage() {
         <div className="home-stat">
           <p className="home-stat-label">이번 달 예상 수익</p>
           <p className="home-stat-value is-money">{formatKrw(monthTotal)}</p>
+        </div>
+        <div className="home-stat">
+          <p className="home-stat-label">지금까지 번 돈</p>
+          <p className="home-stat-value is-money is-lifetime">{formatKrw(lifetimeTotal)}</p>
+          <p className="home-stat-sub">데모</p>
         </div>
       </section>
 
