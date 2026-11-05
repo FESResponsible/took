@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { SETTLEMENT_CYCLE_LABEL } from '@/config/policy';
+import { Icon } from '@/components/icons';
 import { monthPeriod, summarizeSettlement } from '@/domain/settlement';
 import { usePartner } from '@/state/PartnerProvider';
 import { formatDay, formatKrw } from '@/ui/format';
@@ -12,6 +14,10 @@ export default function SettlementPage() {
 
   return (
     <>
+      <Link href="/" className="back-link">
+        <Icon name="chevronLeft" size={18} />
+        오늘
+      </Link>
       <h1 className="page-title">정산</h1>
       <section className="hero-card">
         <p className="hero-label">{now.getMonth() + 1}월 예상 정산액</p>

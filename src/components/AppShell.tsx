@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { toDateKey } from '@/domain/time';
 import { usePartner } from '@/state/PartnerProvider';
-import { BottomNav } from './BottomNav';
 import { Icon } from './icons';
 import { NoticeToast } from './NoticeToast';
 
@@ -53,7 +52,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
       <main className="content">{children}</main>
       <NoticeToast />
-      {inThread ? null : <BottomNav />}
     </div>
   );
 }

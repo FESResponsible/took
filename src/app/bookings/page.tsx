@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { BookingCard } from '@/components/BookingCard';
+import { Icon } from '@/components/icons';
 import { usePartner } from '@/state/PartnerProvider';
 import { filterBookings, type BookingTab } from '@/state/selectors';
 
@@ -21,6 +23,10 @@ export default function BookingsPage() {
 
   return (
     <>
+      <Link href="/" className="back-link">
+        <Icon name="chevronLeft" size={18} />
+        오늘
+      </Link>
       <h1 className="page-title">예약</h1>
       <div className="tabs" role="tablist" aria-label="예약 상태">
         {TABS.map((item) => (

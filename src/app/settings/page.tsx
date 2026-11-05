@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
+import { Icon } from '@/components/icons';
 import { BAG_SIZES } from '@/domain/bags';
 import type { StoreSettings } from '@/domain/types';
 import { usePartner } from '@/state/PartnerProvider';
@@ -30,6 +32,10 @@ export default function SettingsPage() {
 
   return (
     <>
+      <Link href="/" className="back-link">
+        <Icon name="chevronLeft" size={18} />
+        오늘
+      </Link>
       <h1 className="page-title">보관 조건</h1>
       <p className="section-desc">조건 안 예약은 자동으로 확정돼요.</p>
 

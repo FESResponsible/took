@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icon } from '@/components/icons';
 import { usePartner } from '@/state/PartnerProvider';
 import { messagePreview, threadSummaries } from '@/state/selectors';
 import { formatDateTime, formatTime } from '@/ui/format';
@@ -11,6 +12,10 @@ export default function ChatListPage() {
 
   return (
     <>
+      <Link href="/" className="back-link">
+        <Icon name="chevronLeft" size={18} />
+        오늘
+      </Link>
       <h1 className="page-title">대화</h1>
       {threads.length === 0 ? (
         <p className="empty">아직 대화가 없어요.</p>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Suspense } from 'react';
 import { usePartner } from '@/state/PartnerProvider';
 import { formatDateTime } from '@/ui/format';
@@ -15,6 +16,10 @@ export default function SupportPage() {
 
   return (
     <>
+      <Link href="/" className="back-link">
+        <Icon name="chevronLeft" size={18} />
+        오늘
+      </Link>
       <h1 className="page-title">문의</h1>
 
       <section className="manager-card">
