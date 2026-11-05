@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Icon, type IconName } from '@/components/icons';
+import { AppMark, type AppMarkName } from '@/components/AppMark';
 import { monthPeriod, summarizeSettlement } from '@/domain/settlement';
 import { toDateKey } from '@/domain/time';
 import { usePartner } from '@/state/PartnerProvider';
@@ -9,13 +9,20 @@ import { selectToday } from '@/state/selectors';
 import { formatDay, formatKrw, formatTime } from '@/ui/format';
 import { todayLists } from './today/lists';
 
-const QUICK: ReadonlyArray<{ href: string; label: string; icon: IconName; tone: string }> = [
-  { href: '/bookings', label: '예약', icon: 'calendar', tone: 'cyan' },
-  { href: '/settlement', label: '정산', icon: 'wallet', tone: 'point' },
-  { href: '/settings', label: '보관 조건', icon: 'sliders', tone: 'mint' },
-  { href: '/support', label: '문의', icon: 'message', tone: 'cyan' },
-  { href: '/scan', label: 'QR 확인', icon: 'qr', tone: 'mint' },
+const QUICK: ReadonlyArray<{ href: string; label: string; mark: AppMarkName; tone: string }> = [
+  { href: '/bookings', label: '예약', mark: 'bag', tone: 'bag' },
+  { href: '/settlement', label: '정산', mark: 'coins', tone: 'coins' },
+  { href: '/settings', label: '보관 조건', mark: 'clock', tone: 'clock' },
+  { href: '/support', label: '문의', mark: 'chat', tone: 'chat' },
+  { href: '/scan', label: 'QR 확인', mark: 'qr', tone: 'qr' },
 ];
+
+const TILE_MARK: Record<string, AppMarkName> = {
+  stored: 'locker',
+  arriving: 'visit',
+  pending: 'check',
+  'no-show': 'miss',
+};
 
 export default function TodayPage() {
   const { state, now } = usePartner();
@@ -60,7 +67,7 @@ export default function TodayPage() {
           <Link key={item.href} href={item.href} className="quick-item">
             {item.href === '/bookings' && view.pending.length > 0 ? <span className="qa-pill">확인 필요</span> : null}
             <span className={`qa-icon qa-${item.tone}`}>
-              <Icon name={item.icon} size={22} />
+              <AppMark name={item.mark} size={30} />
             </span>
             <span>{item.label}</span>
           </Link>
@@ -72,7 +79,10 @@ export default function TodayPage() {
         <div className="tile-grid">
           {sections.map((section) => (
             <Link key={section.id} href={section.href} className="tile">
-              <span className="tile-count">{section.items.length}</span>
+              <span className="tile-top">
+                <span className="tile-count">{section.items.length}</span>
+                <AppMark name={TILE_MARK[section.id]} size={28} />
+              </span>
               <span className="tile-label">{section.label}</span>
             </Link>
           ))}
