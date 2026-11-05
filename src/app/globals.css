@@ -79,16 +79,19 @@ a { color: inherit; text-decoration: none; }
 .brand-logo { height: 28px; width: auto; display: block; flex-shrink: 0; }
 .store-name { margin-top: 0; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .shell.is-thread { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
-.top-actions { display: flex; align-items: center; gap: 2px; }
+.top-actions { display: flex; align-items: center; flex-shrink: 0; gap: 4px; }
 .icon-btn {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  margin-block: -8px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   color: var(--ink);
 }
+/* 로고 파일의 여백을 뺀 보이는 높이(28px 상자 안의 그림)와 맞춘다. */
+.top-actions .icon-btn svg { display: block; height: 24.5px; width: auto; }
 .icon-btn:active { background: var(--section); }
 .icon-dot {
   position: absolute;

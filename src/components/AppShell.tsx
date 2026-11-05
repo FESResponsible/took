@@ -27,15 +27,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <div className="top-actions">
           <Link href="/bookings" className="icon-btn" aria-label={pending > 0 ? `예약 알림, 확인 필요 ${pending}건` : '예약 알림'}>
-            <Icon name="bell" size={20} />
+            <Icon name="bell" width={23.2} height={24.5} viewBox="5.125 4.325 13.75 14.55" />
             {pending > 0 ? <span className="icon-dot">{pending}</span> : null}
           </Link>
           <Link href="/chats" className="icon-btn" aria-label={unread > 0 ? `채팅, 안 읽음 ${unread}건` : '채팅'}>
-            <Icon name="message" size={20} />
+            <Icon name="message" width={23.2} height={24.5} viewBox="3.125 3.125 17.75 18.75" />
             {unread > 0 ? <span className="icon-dot">{unread}</span> : null}
           </Link>
           <Link href="/settings" className="icon-btn" aria-label="설정">
-            <Icon name="settings" size={20} />
+            <Icon name="settings" width={22.9} height={24.5} viewBox="1.1 0.7 21.8 23.3" />
           </Link>
         </div>
       </header>
