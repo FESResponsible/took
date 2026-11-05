@@ -54,7 +54,7 @@ export default function BookingDetailPage() {
         <span className="qa-icon qa-mint">
           <Icon name="message" size={18} />
         </span>
-        <span className="chat-entry-label">손님과 대화</span>
+        <span className="chat-entry-label">데모 대화</span>
         {threadUnread > 0 ? <span className="chat-unread">{threadUnread}</span> : <Icon name="chevron" size={18} />}
       </Link>
 
@@ -88,7 +88,7 @@ export default function BookingDetailPage() {
       {(booking.status === 'confirmed' || booking.status === 'checked_in') && <DemoQr code={booking.code} />}
 
       <Link href={`/support?booking=${booking.id}`} className="btn btn-line btn-block">
-        이 예약 문의
+        이 예약 메모
       </Link>
     </>
   );

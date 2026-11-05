@@ -145,7 +145,7 @@ export function partnerReducer(state: PartnerState, action: PartnerAction): Part
     case 'approve':
       return applyTransition(state, action.id, (b) => approve(b, action.now), '예약을 승인했어요.');
     case 'reject':
-      return applyTransition(state, action.id, (b) => reject(b, action.now), '예약을 거절했어요. 고객에게 다른 매장을 안내할게요.');
+      return applyTransition(state, action.id, (b) => reject(b, action.now), '예약을 거절했어요. 이 기기에만 남고 고객에게는 안내하지 않아요.');
     case 'check_in':
       return applyTransition(state, action.id, (b) => checkIn(b, action.input), '짐을 접수했어요.');
     case 'check_out':
@@ -164,7 +164,7 @@ export function partnerReducer(state: PartnerState, action: PartnerAction): Part
       return withNotice(
         { ...state, tickets: [action.ticket, ...state.tickets] },
         'success',
-        '문의를 접수했어요. 담당자가 연락드릴게요.',
+        '이 기기에만 저장했어요. 담당자에게 전달되지 않아요.',
       );
     case 'send_message':
       return sendMessage(state, action);

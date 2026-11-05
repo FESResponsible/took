@@ -60,8 +60,8 @@ export default function TodayPage() {
             <Icon name="message" size={20} />
           </span>
           <span className="chat-shortcut-copy">
-            <strong>답장할 대화</strong>
-            <span className="notice-sub">{replyCount}건이 답을 기다려요</span>
+            <strong>데모 대화</strong>
+            <span className="notice-sub">이 기기에만 있고 손님에게 안 가요</span>
           </span>
           {unread > 0 ? <span className="chat-unread">{unread}</span> : null}
         </Link>

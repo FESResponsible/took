@@ -155,7 +155,7 @@ export default function ChatThreadPage() {
             {message.author === 'store' || index === messages.length - 1 ? (
               <div className="bubble-meta">
                 {message.author === 'store' ? (
-                  <span className={`bubble-receipt ${message.guestReadAt ? 'is-read' : 'is-unread'}`}>{message.guestReadAt ? '읽음' : '안 읽음'}</span>
+                  <span className={`bubble-receipt ${message.guestReadAt ? 'is-read' : 'is-unread'}`}>{message.guestReadAt ? '읽음(데모)' : '안 읽음(데모)'}</span>
                 ) : null}
                 {index === messages.length - 1 ? (
                   <time className="bubble-time" dateTime={message.createdAt}>
@@ -200,7 +200,7 @@ export default function ChatThreadPage() {
             onChange={(event) => setDraft(event.target.value)}
           />
           <button type="submit" className="btn btn-accent" disabled={busy || (!draft.trim() && pending.length === 0)}>
-            보내기
+            기기에 저장
           </button>
         </div>
       </form>

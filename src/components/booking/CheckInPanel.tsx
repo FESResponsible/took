@@ -21,7 +21,7 @@ export function CheckInPanel({ booking }: { booking: Booking }) {
       <h2 className="panel-title">짐 접수</h2>
       <ol className="steps">
         <li>이 화면이 고객의 예약({booking.code})이 맞는지 확인해요.</li>
-        <li>맡기는 짐을 사진으로 남겨요. 분쟁이 생기면 근거가 돼요.</li>
+        <li>맡기는 짐을 사진으로 남겨요. 사진은 이 기기에만 남아요.</li>
         <li>짐 개수를 세고 접수 완료를 눌러요.</li>
       </ol>
 

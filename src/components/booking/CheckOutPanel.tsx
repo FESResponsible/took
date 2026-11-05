@@ -16,7 +16,7 @@ export function CheckOutPanel({ booking }: { booking: Booking }) {
     <section className="panel">
       <h2 className="panel-title">짐 반환</h2>
       {isPickupOverdue(booking, now) && (
-        <p className="panel-note note-warn">찾으러 올 시간이 지났어요. 연장 요금은 TooK이 고객에게 청구해요.</p>
+        <p className="panel-note note-warn">찾으러 올 시간이 지났어요. 고객에게 요금을 청구하지 않아요.</p>
       )}
       {record && (
         <>

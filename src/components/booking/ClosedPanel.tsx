@@ -8,7 +8,7 @@ import { formatDateTime } from '@/ui/format';
 const MESSAGES = {
   completed: '보관이 끝난 예약이에요. 정산 탭에 반영됐어요.',
   no_show: '노쇼로 처리한 예약이에요. 노쇼 보상이 정산에 반영됐어요.',
-  rejected: '거절한 예약이에요. 고객에게는 다른 매장을 안내했어요.',
+  rejected: '거절한 예약이에요. 고객에게는 안내하지 않았어요.',
   expired: '응답 시간이 지나 자동으로 취소된 예약이에요.',
 } as const;
 

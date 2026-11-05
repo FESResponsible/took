@@ -36,7 +36,7 @@ export function TicketForm() {
 
   return (
     <form className="form panel" onSubmit={onSubmit}>
-      <h2 className="panel-title">문의·분쟁 접수</h2>
+      <h2 className="panel-title">문의 메모</h2>
       <div className="field">
         <label htmlFor="kind" className="field-label">종류</label>
         <select id="kind" className="input" value={kind} onChange={(e) => setKind(e.target.value as TicketKind)}>
@@ -60,7 +60,7 @@ export function TicketForm() {
         <p className="field-hint">{message.length}/{MAX_MESSAGE}</p>
       </div>
       {error && <p className="field-error">{error}</p>}
-      <button type="submit" className="btn btn-accent btn-block">접수하기</button>
+      <button type="submit" className="btn btn-accent btn-block">이 기기에 저장</button>
     </form>
   );
 }

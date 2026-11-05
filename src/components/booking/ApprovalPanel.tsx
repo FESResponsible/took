@@ -10,7 +10,7 @@ export function ApprovalPanel({ booking }: { booking: Booking }) {
   const remaining = booking.approvalDeadline ? Date.parse(booking.approvalDeadline) - now.getTime() : 0;
 
   const onReject = () => {
-    if (window.confirm('이 예약을 거절할까요? 고객에게는 TooK이 다른 매장을 안내해요.')) {
+    if (window.confirm('이 예약을 거절할까요? 고객에게는 전달되지 않아요.')) {
       dispatch({ type: 'reject', id: booking.id, now: new Date() });
     }
   };

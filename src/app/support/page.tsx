@@ -23,7 +23,7 @@ export default function SupportPage() {
             <Icon name="user" size={22} />
           </span>
           <div>
-            <p className="hero-label">전담 담당자</p>
+            <p className="hero-label">예시 담당자</p>
             <p className="manager-name">{store.managerName}</p>
             <p className="muted">
               {store.managerPhone} · {store.managerEmail}
@@ -32,19 +32,19 @@ export default function SupportPage() {
         </div>
         {looksLikePhone(store.managerPhone) && (
           <a className="btn btn-accent btn-block" href={`tel:${store.managerPhone.replace(/\s/g, '')}`}>
-            전화하기
+            예시 번호로 전화
           </a>
         )}
-        <p className="section-desc">분쟁 응대는 TooK이 맡아요.</p>
+        <p className="section-desc">데모예요. 문의는 이 기기에만 저장되고 아무도 연락하지 않아요.</p>
       </section>
 
       <Suspense fallback={null}>
         <TicketForm />
       </Suspense>
 
-      <h2 className="section-title">접수 내역</h2>
+      <h2 className="section-title">이 기기에 저장된 문의</h2>
       {state.tickets.length === 0 ? (
-        <p className="empty">아직 접수한 문의가 없어요.</p>
+        <p className="empty">이 기기에 저장된 문의가 없어요.</p>
       ) : (
         <ul className="ledger">
           {state.tickets.map((ticket) => {
@@ -59,7 +59,7 @@ export default function SupportPage() {
                   <p className="ticket-message">{ticket.message}</p>
                   <p className="muted">{formatDateTime(ticket.createdAt, now)}</p>
                 </div>
-                <span className="badge badge-confirmed">접수됨</span>
+                <span className="badge badge-confirmed">기기 저장</span>
               </li>
             );
           })}
