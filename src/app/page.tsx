@@ -6,7 +6,7 @@ import { monthPeriod, summarizeSettlement } from '@/domain/settlement';
 import { toDateKey } from '@/domain/time';
 import { usePartner } from '@/state/PartnerProvider';
 import { selectToday } from '@/state/selectors';
-import { formatKrw } from '@/ui/format';
+import { formatDay, formatKrw, formatTime } from '@/ui/format';
 import { todayLists } from './today/lists';
 
 const QUICK: ReadonlyArray<{ href: string; label: string; icon: IconName; tone: string }> = [
@@ -26,6 +26,14 @@ export default function TodayPage() {
   const todayBookings = state.bookings.filter((booking) => toDateKey(new Date(booking.dropOffAt)) === todayKey);
   const handled = todayBookings.filter((booking) => booking.status === 'completed' || booking.status === 'no_show').length;
   const monthTotal = summarizeSettlement(state.bookings, monthPeriod(now), state.policy).totalKrw;
+  const accepting = state.settings.pausedOn !== todayKey;
+  const nextDropOff = state.bookings
+    .filter((booking) => (booking.status === 'confirmed' || booking.status === 'pending_approval') && Date.parse(booking.dropOffAt) > now.getTime())
+    .sort((a, b) => a.dropOffAt.localeCompare(b.dropOffAt))[0];
+  const nextPickup = state.bookings
+    .filter((booking) => booking.status === 'checked_in' && Date.parse(booking.pickUpAt) > now.getTime())
+    .sort((a, b) => a.pickUpAt.localeCompare(b.pickUpAt))[0];
+  const when = (iso: string) => `${formatDay(iso, now)} ${formatTime(iso)}`;
 
   return (
     <>
@@ -68,6 +76,41 @@ export default function TodayPage() {
               <span className="tile-label">{section.label}</span>
             </Link>
           ))}
+        </div>
+      </section>
+
+      <section className="home-facts" aria-label="오늘 메모">
+        {nextDropOff ? (
+          <Link href={`/bookings/${nextDropOff.id}`} className="home-fact">
+            <span className="home-fact-label">다음 맡김</span>
+            <span className="home-fact-value">
+              {nextDropOff.customerName}
+              <span className="home-fact-meta">{when(nextDropOff.dropOffAt)}</span>
+            </span>
+          </Link>
+        ) : (
+          <div className="home-fact">
+            <span className="home-fact-label">다음 맡김</span>
+            <span className="home-fact-value">예정된 맡김이 없어요</span>
+          </div>
+        )}
+        {nextPickup ? (
+          <Link href={`/bookings/${nextPickup.id}`} className="home-fact">
+            <span className="home-fact-label">다음 찾기</span>
+            <span className="home-fact-value">
+              {nextPickup.customerName}
+              <span className="home-fact-meta">{when(nextPickup.pickUpAt)}</span>
+            </span>
+          </Link>
+        ) : (
+          <div className="home-fact">
+            <span className="home-fact-label">다음 찾기</span>
+            <span className="home-fact-value">예정된 찾기가 없어요</span>
+          </div>
+        )}
+        <div className="home-fact">
+          <span className="home-fact-label">예약 받기</span>
+          <span className="home-fact-value">{accepting ? '오늘 예약 받는 중' : '오늘 예약 멈춤'}</span>
         </div>
       </section>
     </>
