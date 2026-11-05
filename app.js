@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=706daecde75b';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=88e37e6485ce';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=7a08fcd0c549';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=db521f1eb8e3';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=9542c7aff531';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=74831a0423aa';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -369,10 +369,14 @@ function halfDayTimes() {
   return times;
 }
 
+function stayButtonInner(date, time) {
+  if (!date) return '<span class="stay-placeholder">' + escapeHtml(t('search.pick')) + '</span>';
+  return '<span class="stay-date">' + escapeHtml(formatDate(date)) + '</span>' + (time ? '<span class="stay-clock">' + escapeHtml(time) + '</span>' : '');
+}
+
 function stayButtonHTML(id, kind, date, time) {
   const set = Boolean(date);
-  const text = set ? escapeHtml(formatDate(date) + (time ? ' ' + time : '')) : '<span class="stay-placeholder">' + escapeHtml(t('search.pick')) + '</span>';
-  return '<button type="button" class="stay-pick' + (set ? ' is-set' : '') + '" id="' + id + '" data-stay="' + kind + '" aria-haspopup="dialog" aria-expanded="false">' + text + '</button>';
+  return '<button type="button" class="stay-pick' + (set ? ' is-set' : '') + '" id="' + id + '" data-stay="' + kind + '" aria-haspopup="dialog" aria-expanded="false">' + stayButtonInner(date, time) + '</button>';
 }
 
 function paintStayButtons() {
@@ -380,7 +384,7 @@ function paintStayButtons() {
     const value = readStay(button.dataset.stay);
     const set = Boolean(value.date);
     button.classList.toggle('is-set', set);
-    button.innerHTML = set ? escapeHtml(formatDate(value.date) + (value.time ? ' ' + value.time : '')) : '<span class="stay-placeholder">' + escapeHtml(t('search.pick')) + '</span>';
+    button.innerHTML = stayButtonInner(value.date, value.time);
   });
 }
 
@@ -459,34 +463,78 @@ function renderStayPicker() {
   pop.innerHTML = '<div class="stay-cal-head"><button type="button" class="stay-nav" data-month="-1" aria-label="' + escapeHtml(t('search.prevMonth')) + '">‹</button><strong>' + escapeHtml(title) + '</strong><button type="button" class="stay-nav" data-month="1" aria-label="' + escapeHtml(t('search.nextMonth')) + '">›</button></div><div class="stay-grid">' + grid + '</div><p class="stay-time-label">' + escapeHtml(t('search.pickTime')) + '</p><div class="stay-times">' + timeHtml + '</div>';
 }
 
+function fitPopover(rect, height, boxTop, boxBottom, margin) {
+  const spaceBelow = boxBottom - rect.bottom - margin;
+  const spaceAbove = rect.top - boxTop - margin;
+  let top = rect.bottom + margin;
+  let maxHeight = Math.min(height, Math.max(0, spaceBelow));
+  if (spaceBelow < Math.min(height, 240) && spaceAbove > spaceBelow) {
+    maxHeight = Math.min(height, Math.max(0, spaceAbove));
+    top = rect.top - margin - maxHeight;
+  }
+  if (top < boxTop) top = boxTop;
+  if (top + maxHeight > boxBottom) maxHeight = Math.max(0, boxBottom - top);
+  return { top, maxHeight: Math.max(0, maxHeight) };
+}
+
 function placeStayPicker(anchor) {
   const pop = $('#stay-popover');
   const dialog = anchor.closest('dialog');
+  const margin = 8;
   const host = dialog || document.body;
   if (pop.parentElement !== host) host.appendChild(pop);
+  pop.style.right = 'auto';
+  pop.style.bottom = 'auto';
+  pop.style.maxHeight = '';
+  pop.style.overflow = 'auto';
+  const hostRect = dialog ? dialog.getBoundingClientRect() : null;
+  const room = hostRect ? hostRect.width : window.innerWidth;
+  const width = Math.max(220, Math.min(320, room - margin * 2, window.innerWidth - margin * 2));
+  pop.style.width = width + 'px';
+  pop.style.position = dialog ? 'absolute' : 'fixed';
   const rect = anchor.getBoundingClientRect();
-  const width = Math.min(320, window.innerWidth - 24);
+  const height = Math.max(pop.scrollHeight, pop.offsetHeight);
+  const boxLeft = hostRect ? Math.max(margin, hostRect.left + margin) : margin;
+  const boxRight = hostRect ? Math.min(window.innerWidth - margin, hostRect.right - margin) : window.innerWidth - margin;
+  const boxTop = hostRect ? Math.max(margin, hostRect.top + margin) : margin;
+  const boxBottom = hostRect ? Math.min(window.innerHeight - margin, hostRect.bottom - margin) : window.innerHeight - margin;
+  let left = rect.left;
+  if (left + width > boxRight) left = boxRight - width;
+  if (left < boxLeft) left = boxLeft;
+  const fitted = fitPopover(rect, height, boxTop, boxBottom, margin);
+  pop.style.maxHeight = fitted.maxHeight + 'px';
   if (dialog) {
-    const hostRect = dialog.getBoundingClientRect();
-    let left = rect.left - hostRect.left + dialog.scrollLeft;
-    if (left + width > dialog.clientWidth - 8) left = Math.max(8, dialog.clientWidth - width - 8);
-    pop.style.position = 'absolute';
-    pop.style.width = width + 'px';
-    pop.style.left = Math.max(8, left) + 'px';
-    pop.style.top = (rect.bottom - hostRect.top + dialog.scrollTop + 8) + 'px';
+    pop.style.left = (left - hostRect.left + dialog.scrollLeft) + 'px';
+    pop.style.top = (fitted.top - hostRect.top + dialog.scrollTop) + 'px';
   } else {
-    let left = rect.left;
-    if (left + width > window.innerWidth - 12) left = Math.max(12, window.innerWidth - width - 12);
-    pop.style.position = 'fixed';
-    pop.style.width = width + 'px';
     pop.style.left = left + 'px';
-    pop.style.top = (rect.bottom + 8) + 'px';
+    pop.style.top = fitted.top + 'px';
   }
-  const box = pop.getBoundingClientRect();
-  if (box.bottom > window.innerHeight - 8) {
-    const above = rect.top - box.height - 8;
-    if (above >= 8) pop.style.top = (dialog ? above - dialog.getBoundingClientRect().top + dialog.scrollTop : above) + 'px';
-  }
+}
+
+function placeBagPopover() {
+  const pop = $('#bag-popover');
+  const anchor = $('#bag-toggle');
+  if (!pop || pop.hidden || !anchor) return;
+  if (pop.parentElement !== document.body) document.body.appendChild(pop);
+  const margin = 8;
+  const width = Math.max(220, Math.min(300, window.innerWidth - margin * 2));
+  pop.style.position = 'fixed';
+  pop.style.right = 'auto';
+  pop.style.bottom = 'auto';
+  pop.style.width = width + 'px';
+  pop.style.maxHeight = '';
+  pop.style.overflow = 'auto';
+  pop.style.zIndex = '30';
+  const rect = anchor.getBoundingClientRect();
+  const height = Math.max(pop.scrollHeight, pop.offsetHeight);
+  let left = rect.left;
+  if (left + width > window.innerWidth - margin) left = window.innerWidth - margin - width;
+  if (left < margin) left = margin;
+  const fitted = fitPopover(rect, height, margin, window.innerHeight - margin, margin);
+  pop.style.left = left + 'px';
+  pop.style.top = fitted.top + 'px';
+  pop.style.maxHeight = fitted.maxHeight + 'px';
 }
 
 function openStayPicker(button) {
@@ -896,25 +944,43 @@ $('#bag-toggle').addEventListener('click', () => {
   if ($('#bag-popover').hidden) {
     $('#bag-popover').hidden = false;
     $('#bag-toggle').setAttribute('aria-expanded', 'true');
-    const rect = $('#bag-confirm').getBoundingClientRect();
-    const overflow = rect.bottom - (window.innerHeight - 24);
-    if (overflow > 0) window.scrollBy(0, overflow);
+    placeBagPopover();
   } else closeBagPopover();
 });
 $('#hero-bag-minus').addEventListener('click', () => updateHeroBags(-1));
 $('#hero-bag-plus').addEventListener('click', () => updateHeroBags(1));
 $('#bag-note').addEventListener('input', event => { state.bagNote = event.target.value; });
 $('#bag-confirm').addEventListener('click', () => { state.bagNote = $('#bag-note').value; closeBagPopover(); $('#bag-toggle').focus(); });
+function anchorInView(anchor) {
+  const dialog = anchor.closest('dialog');
+  const bounds = dialog ? dialog.getBoundingClientRect() : { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth };
+  const rect = anchor.getBoundingClientRect();
+  return rect.bottom > bounds.top + 4 && rect.top < bounds.bottom - 4 && rect.right > bounds.left && rect.left < bounds.right;
+}
+function repositionOpenPopovers() {
+  const stay = $('#stay-popover');
+  if (stay && !stay.hidden) {
+    const anchor = document.querySelector('.stay-pick[aria-expanded="true"]');
+    if (anchor && anchorInView(anchor)) placeStayPicker(anchor);
+    else closeStayPicker();
+  }
+  const bags = $('#bag-popover');
+  if (bags && !bags.hidden) {
+    const anchor = $('#bag-toggle');
+    if (anchor && anchorInView(anchor)) placeBagPopover();
+    else closeBagPopover();
+  }
+}
 document.addEventListener('scroll', event => {
-  if (event.target.closest && event.target.closest('#stay-popover')) return;
-  closeStayPicker();
+  if (event.target.closest && event.target.closest('#stay-popover, #bag-popover')) return;
+  repositionOpenPopovers();
 }, true);
-window.addEventListener('resize', closeStayPicker);
+window.addEventListener('resize', repositionOpenPopovers);
 document.addEventListener('click', event => {
   if (event.target.closest('#stay-popover')) { onStayPopoverClick(event); return; }
   if (event.target.closest('.stay-pick')) { openStayPicker(event.target.closest('.stay-pick')); return; }
   closeStayPicker();
-  if (!event.target.closest('.bag-field-wrap')) closeBagPopover();
+  if (!event.target.closest('.bag-field-wrap, #bag-popover')) closeBagPopover();
   const favourite = event.target.closest('[data-favourite]');
   if (favourite) {
     const id = favourite.dataset.favourite;

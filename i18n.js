@@ -32,7 +32,7 @@ const MESSAGES = {
   'nav.footerPlaces': L('보관 공간 둘러보기', 'Browse storage', '浏览寄存点', '瀏覽寄存點'),
   'nav.footerHow': L('이용 방법', 'How it works', '使用方法', '使用方法'),
   'nav.footerGuide': L('이용 안내', 'Help', '使用说明', '使用說明'),
-  'hero.alt': L('노란 캐리어를 끌며 서울의 햇살 가득한 한옥 골목을 걷는 여행자', 'A traveler pulling a yellow suitcase through a sunny hanok alley in Seoul', '旅客拖着黄色行李箱，走在首尔阳光充足的韩屋巷弄', '旅客拖著黃色行李箱，走在首爾陽光充足的韓屋巷弄'),
+  'hero.alt': L('노을과 63빌딩, 한강 다리, 잔디에 앉은 사람들', 'Sunset, 63 Building, a Han River bridge, and people sitting on the grass', '晚霞、63大厦、汉江大桥，草地上坐着的人们', '晚霞、63大廈、漢江大橋，草地上坐著的人們'),
   'hero.note': L('앱 설치 없이 조건을 확인해요. 결제는 테스트예요.', 'Check the conditions without an app. Payment is only a test.', '不用安装应用，先确认条件。付款只是测试。', '不用安裝應用程式，先確認條件。付款只是測試。'),
   'hero.ticketSoft': C(
     L('손은 가볍게, 여행은 자유롭게', 'Hands free. More to explore.', '双手轻松，旅程自在', '雙手輕鬆，旅程自在'),
@@ -148,7 +148,7 @@ const MESSAGES = {
   'needs.howTitle': L('어떻게 쓰나요', 'How do you use it?', '怎么使用？', '怎麼使用？'),
   'needs.price': L('시간당 1,000원, 오래 맡겨도 하루 5,000원을 넘지 않아요', '₩1,000 per hour, and never more than ₩5,000 per bag each day', '每小时 1,000韩元，每件每天不超过 5,000韩元', '每小時 1,000韓元，每件每天不超過 5,000韓元'),
   'needs.when': L('날짜와 시작 시간, 짐 종류를 적어요', 'Add the date, start time, and bag type.', '填写日期、开始时间和行李种类。', '填寫日期、開始時間和行李種類。'),
-  'needs.pay': L('테스트 결제로 이어져요. 실제 청구와 예약은 없어요.', 'Continue to the test payment. Nothing is charged and no reservation is made.', '接着进入测试付款。不会实际扣款，也不会预约。', '接著進入測試付款。不會實際扣款，也不會預約。'),
+  'needs.pay': L('예약 후 편하게 여행해요.', 'After you reserve, travel with ease.', '预约后轻松旅行。', '預約後輕鬆旅行。'),
   'places.kicker': L('FIND YOUR LIGHT SPOT', 'FIND YOUR LIGHT SPOT', 'FIND YOUR LIGHT SPOT', 'FIND YOUR LIGHT SPOT'),
   'places.title': L('어디에서 가벼워질까요?', 'Where will you lighten the load?', '想在哪里轻装上阵？', '想在哪裡輕裝上陣？'),
   'places.lead': L('전체 목록에서 고르거나, 핫플과 보관 옵션, 현재 위치로 좁혀 보세요.', 'Browse the full list, or narrow it by area, storage option, and your location.', '可看全部，也可按地区、寄存条件和当前位置缩小范围。', '可看全部，也可按地區、寄存條件和目前位置縮小範圍。'),
@@ -210,6 +210,18 @@ const MESSAGES = {
   'price.dayValue': L('5,000원', '₩5,000', '5,000韩元', '5,000韓元'),
   'price.minValue': L('2시간', '2 hours', '2小时', '2小時'),
   'price.bagValue': L('3개까지', 'Up to 3', '最多3件', '最多3件'),
+  'guide.title': L('여행을 가볍게<br>tooK 이용 안내', 'Travel lighter<br>Using tooK', '让旅行更轻<br>tooK 使用说明', '讓旅行更輕<br>tooK 使用說明'),
+  'guide.dayName': L('하루권', 'Day pass', '一日券', '一日券'),
+  'guide.dayValue': L('개당 하루 5,000원', '₩5,000 per item per day', '每件每天 5,000韩元', '每件每天 5,000韓元'),
+  'guide.hourName': L('시간권', 'Hourly', '小时券', '小時券'),
+  'guide.hourValue': L('시간당 1,000원. 2시간부터. 하루 최대 5,000원', '₩1,000 per hour. From 2 hours. Up to ₩5,000 a day.', '每小时 1,000韩元。从 2 小时起。每天最多 5,000韩元。', '每小時 1,000韓元。從 2 小時起。每天最多 5,000韓元。'),
+  'guide.sameName': L('짐 종류', 'Bag type', '行李种类', '行李種類'),
+  'guide.sameValue': L('짐 종류와 상관없이 같은 요금', 'The same rate for every bag type', '不论种类，费用相同', '不論種類，費用相同'),
+  'guide.bagName': L('쇼핑백', 'Shopping bags', '购物袋', '購物袋'),
+  'guide.bagValue': L('3개까지 1개로 계산', 'Up to 3 count as 1', '最多 3 件按 1 件计算', '最多 3 件按 1 件計算'),
+  'guide.plusName': L('안심 플러스', 'Peace Plus', '安心加值', '安心加值'),
+  'guide.plusValue': L('개당 +1,000원', '+₩1,000 per item', '每件 +1,000韩元', '每件 +1,000韓元'),
+  'guide.plusNote': L('짐 분실이나 파손에 대비해 선택할 수 있어요. 선택하면 개당 1,000원이 추가됩니다.', 'Optional if a bag is lost or damaged. Choosing it adds ₩1,000 per item.', '可选择，用来应对行李丢失或损坏。选择后每件加 1,000韩元。', '可選擇，用來應對行李遺失或損壞。選擇後每件加 1,000韓元。'),
   'care.alt': C(
     L('여행 동선에서 볼 수 있는 서울 도심 풍경', 'A Seoul city view along a travel route', '旅行路线上能看到的首尔市景', '旅行路線上能看到的首爾市景'),
     L('일정 근처에서 볼 수 있는 서울 도심 풍경', 'A Seoul city view near everyday plans', '日常安排附近能看到的首尔市景', '日常安排附近能看到的首爾市景')
@@ -240,7 +252,7 @@ const MESSAGES = {
   'faq.title': L('궁금한 점이<br>남았나요?', 'Still have<br>a question?', '还有<br>想问的吗？', '還有<br>想問的嗎？'),
   'faq.lead': L('처음 맡기는 날에도<br>걱정 없이 시작할 수 있도록.', 'So the first drop-off<br>can start without worry.', '让第一次寄存<br>也能安心开始。', '讓第一次寄存<br>也能安心開始。'),
   'faq.q1': L('예약은 어떻게 하나요?', 'How do I book?', '如何预约？', '如何預約？'),
-  'faq.a1': L('원하는 공간을 고른 뒤 날짜, 시작 시간, 짐 개수와 종류를 확인하고 테스트 결제로 이동해요. 실제 청구와 예약은 없어요.', 'Choose a spot, check the date, start time, bag count, and bag type, then continue to the test payment. Nothing is charged and no reservation is made.', '选好地点后，确认日期、开始时间、行李数量和种类，再进入测试付款。不会实际扣款，也不会预约。', '選好地點後，確認日期、開始時間、行李數量和種類，再進入測試付款。不會實際扣款，也不會預約。'),
+  'faq.a1': L('원하는 공간을 고른 뒤 날짜, 시작 시간, 짐 개수와 종류를 확인하고 예약하세요. 가벼운 여행이 시작점이 될 거에요.', 'Choose a spot, check the date, start time, bag count, and bag type, then reserve. A lighter trip starts there.', '选好地点后，确认日期、开始时间、行李数量和种类，然后预约。轻松的旅行从这里开始。', '選好地點後，確認日期、開始時間、行李數量和種類，然後預約。輕鬆的旅行從這裡開始。'),
   'faq.q2': L('요금은 어떻게 되나요?', 'How much does it cost?', '费用怎么算？', '費用怎麼算？'),
   'faq.a2': L('짐 종류와 상관없이 시간당 1,000원이에요. 2시간부터 맡길 수 있고, 오래 맡겨도 개당 하루 5,000원을 넘지 않아요. 쇼핑백은 3개까지 1개 요금으로 계산해요.', 'Every bag type is ₩1,000 per hour. Storage starts at 2 hours, and a bag never exceeds ₩5,000 per day. Shopping bags are billed as one item for every three.', '不论种类，每小时 1,000韩元。最短 2 小时，每件每天不超过 5,000韩元。购物袋每 3 件按 1 件计费。', '不論種類，每小時 1,000韓元。最短 2 小時，每件每天不超過 5,000韓元。購物袋每 3 件按 1 件計費。'),
   'faq.q3': L('짐이 분실되거나 망가지면요?', 'What if a bag is lost or damaged?', '行李丢失或损坏怎么办？', '行李遺失或損壞怎麼辦？'),
@@ -248,9 +260,9 @@ const MESSAGES = {
   'faq.q4': L('24시간이나 냉장 보관도 되나요?', 'Can I store overnight or keep food cold?', '可以 24 小时或冷藏吗？', '可以 24 小時或冷藏嗎？'),
   'faq.a4': L('목록 위의 24시간 운영, 냉장/냉동 보관으로 그런 공간을 골라 볼 수 있어요. 요금은 다른 공간과 같아요.', 'Use the 24-hour and fridge or freezer filters above the list. The rate is the same as other spots.', '可用列表上方的 24 小时营业、冷藏或冷冻来筛选。价格与其他地点相同。', '可用列表上方的 24 小時營業、冷藏或冷凍來篩選。價格與其他地點相同。'),
   'faq.q5': L('체험 내역은 어디서 보나요?', 'Where do I see the tryout history?', '在哪里查看体验记录？', '在哪裡查看體驗記錄？'),
-  'faq.a5': L('상단의 체험 내역에서 이 브라우저에 남긴 장소, 시간, 안내 금액을 볼 수 있어요. 실제 예약은 아니에요.', 'Open Tryout history at the top to see the place, time, and quoted price kept in this browser. It is not a real reservation.', '在顶部的体验记录里，可以查看留在这个浏览器中的地点、时间和提示金额。这不是实际预约。', '在頂部的體驗記錄裡，可以查看留在這個瀏覽器中的地點、時間和提示金額。這不是實際預約。'),
+  'faq.a5': L('상단의 체험 내역에서 이 브라우저에 남긴 장소, 시간, 안내 금액을 볼 수 있어요.', 'Open Tryout history at the top to see the place, time, and quoted price kept in this browser.', '在顶部的体验记录里，可以查看留在这个浏览器中的地点、时间和提示金额。', '在頂部的體驗記錄裡，可以查看留在這個瀏覽器中的地點、時間和提示金額。'),
   'faq.q6': L('체험 내역은 어떻게 지우나요?', 'How do I remove a tryout record?', '如何删除体验记录？', '如何刪除體驗記錄？'),
-  'faq.a6': L('체험 내역에서 그 기록을 지울 수 있어요. 실제 예약 변경은 없어요.', 'You can remove the record from Tryout history. There is no real reservation to change.', '可以在体验记录里删除该记录。没有实际预约可以更改。', '可以在體驗記錄裡刪除該記錄。沒有實際預約可以更改。'),
+  'faq.a6': L('체험 내역에서 그 기록을 지울 수 있어요.', 'You can remove the record from Tryout history.', '可以在体验记录里删除该记录。', '可以在體驗記錄裡刪除該記錄。'),
   'faq.q7': L('우리 매장도 파트너로 참여할 수 있나요?', 'Can our shop join as a partner?', '我们的店可以加入合作吗？', '我們的店可以加入合作嗎？'),
   'faq.a7': L('네. 아래 ‘파트너로 함께하기’에서 매장 정보를 남겨 주시면, 확인 후 안내드릴게요.', 'Yes. Leave your shop details under Join as a partner, and we will reply after checking them.', '可以。请在下方“成为合作伙伴”留下店铺信息，确认后会与您联系。', '可以。請在下方「成為合作夥伴」留下店家資訊，確認後會與您聯絡。'),
   'closing.head': L('짐은 툭', 'Drop your bags.', '行李轻放', '行李輕放'),
@@ -489,7 +501,7 @@ const MESSAGES = {
     L('손에 쌓인 가방을 가까운 곳에 잠시 맡겨요.', 'Leave the bags in your hands at a nearby spot for a while.', '把手上的袋子先寄存在附近。', '把手上的袋子先寄存在附近。')
   ),
   'copy.bubble-2-title': C(
-    L('맡기고 찾는 시간이 안 맞거나, 체크인 전과 체크아웃 후에 짐이 남을 때', 'When drop-off or pickup misses the hours, or bags are left before check-in and after checkout', '寄存和取回的时间对不上，或入住前、退房后行李没处放', '寄存和取回的時間對不上，或入住前、退房後行李沒處放'),
+    L('맡기고 찾는 시간이 안 맞거나,<br>체크인 전과 체크아웃 후에 짐이 남을 때', 'When drop-off or pickup misses the hours,<br>or bags are left before check-in and after checkout', '寄存和取回的时间对不上，<br>或入住前、退房后行李没处放', '寄存和取回的時間對不上，<br>或入住前、退房後行李沒處放'),
     L('퇴근 후 약속 전', 'After work, before the next plan', '下班后、下一场约定前', '下班後、下一場約定前')
   ),
   'copy.bubble-2-body': C(
@@ -501,7 +513,7 @@ const MESSAGES = {
     L('다른 지역 콘서트나 출장으로 짐이 남을 때', 'When a concert or work trip in another city leaves you with bags', '去其他城市看演唱会或出差，行李没处放时', '去其他城市看演唱會或出差，行李沒處放時')
   ),
   'copy.bubble-3-body': C(
-    L('여러 날, 큰 짐, 유모차는 매장마다 달라요. 보관할 수 있는지와 찾는 시간을 먼저 확인해요.', 'Several days, a large bag, or a stroller depends on the shop. Check whether they can keep it, and the pickup time, first.', '放好几天、大件或婴儿车能不能放，每家店不同。请先确认能否寄存和取回时间。', '放好幾天、大件或嬰兒車能不能放，每家店不同。請先確認能否寄存和取回時間。'),
+    L('긴 기간 보관해야하는 경우, 유모차, 레저용 짐들 어디 맡길지 애매했다면, tooK을 활용해요.', 'If you were unsure where to leave bags for a long stay, a stroller, or leisure gear, use tooK.', '需要存放较长时间、婴儿车或休闲装备，不知道放哪里时，就用 tooK。', '需要存放較長時間、嬰兒車或休閒裝備，不知道放哪裡時，就用 tooK。'),
     L('공연장이나 일정 근처에 잠시 맡겨요. 여러 날이나 큰 짐은 매장마다 달라서, 맡길 수 있는지는 그 매장에서 확인해요.', 'Leave them for a while near the venue or the plan. Several days or a large bag depends on the shop, so ask that shop whether they can keep it.', '可暂时寄存在场馆或行程附近。放好几天或大件每家店不同，请向那家店确认能否寄存。', '可暫時寄存在場館或行程附近。放好幾天或大件每家店不同，請向那家店確認能否寄存。')
   ),
   'copy.persona-1-role': C(L('위치와 시간', 'Place and time', '位置和时间', '位置和時間'), L('쇼핑', 'Shopping', '购物', '購物')),
@@ -806,8 +818,8 @@ const ERROR_KEYS = {
   '짐 수량을 확인해 주세요.': 'error.count'
 };
 
-const COPY_HTML = ['hero-title', 'hero-description', 'how-side', 'care-caption'];
-const COPY_TEXT = ['hero-cta', 'story-heading', 'story-lead', 'bubble-1-title', 'bubble-1-body', 'bubble-2-title', 'bubble-2-body', 'bubble-3-title', 'bubble-3-body', 'journey-scene', 'journey-b-title-1', 'journey-b-detail-1', 'journey-b-title-2', 'journey-b-detail-2', 'journey-b-title-3', 'journey-b-detail-3', 'journey-b-note', 'journey-b-title-4', 'journey-b-detail-4', 'journey-b-title-5', 'journey-b-detail-5', 'journey-a-title-1', 'journey-a-detail-1', 'journey-a-title-2', 'journey-a-detail-2', 'journey-a-title-3', 'journey-a-detail-3', 'journey-a-note', 'journey-a-title-4', 'journey-a-detail-4', 'journey-a-title-5', 'journey-a-detail-5', 'journey-cases-label', 'case-1-title', 'case-1-situation', 'case-1-check', 'case-2-title', 'case-2-situation', 'case-2-check', 'persona-1-role', 'persona-1-title', 'persona-1-li-1', 'persona-1-li-2', 'persona-1-li-3', 'persona-2-role', 'persona-2-title', 'persona-2-li-1', 'persona-2-li-3', 'needs-how', 'how-near', 'partner-line', 'closing-tail', 'footer-slogan', 'footer-line'];
+const COPY_HTML = ['hero-title', 'hero-description', 'how-side', 'care-caption', 'bubble-2-title'];
+const COPY_TEXT = ['hero-cta', 'story-heading', 'story-lead', 'bubble-1-title', 'bubble-1-body', 'bubble-2-body', 'bubble-3-title', 'bubble-3-body', 'journey-scene', 'journey-b-title-1', 'journey-b-detail-1', 'journey-b-title-2', 'journey-b-detail-2', 'journey-b-title-3', 'journey-b-detail-3', 'journey-b-note', 'journey-b-title-4', 'journey-b-detail-4', 'journey-b-title-5', 'journey-b-detail-5', 'journey-a-title-1', 'journey-a-detail-1', 'journey-a-title-2', 'journey-a-detail-2', 'journey-a-title-3', 'journey-a-detail-3', 'journey-a-note', 'journey-a-title-4', 'journey-a-detail-4', 'journey-a-title-5', 'journey-a-detail-5', 'journey-cases-label', 'case-1-title', 'case-1-situation', 'case-1-check', 'case-2-title', 'case-2-situation', 'case-2-check', 'persona-1-role', 'persona-1-title', 'persona-1-li-1', 'persona-1-li-2', 'persona-1-li-3', 'persona-2-role', 'persona-2-title', 'persona-2-li-1', 'persona-2-li-3', 'needs-how', 'how-near', 'partner-line', 'closing-tail', 'footer-slogan', 'footer-line'];
 
 let current = 'ko';
 let copyMode = 'tourism';
