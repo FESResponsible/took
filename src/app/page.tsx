@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { BookingCard } from '@/components/BookingCard';
 import { Icon, type IconName } from '@/components/icons';
+import { monthPeriod, summarizeSettlement } from '@/domain/settlement';
+import { toDateKey } from '@/domain/time';
 import { isPickupOverdue } from '@/domain/transitions';
 import type { Booking } from '@/domain/types';
 import { usePartner } from '@/state/PartnerProvider';
 import { selectToday } from '@/state/selectors';
-import { formatRemaining, formatTime } from '@/ui/format';
+import { formatKrw, formatRemaining, formatTime } from '@/ui/format';
 import { REASON_LABEL } from '@/ui/labels';
 
 const QUICK: ReadonlyArray<{ href: string; label: string; icon: IconName; tone: string }> = [
@@ -39,7 +41,7 @@ export default function TodayPage() {
     },
     {
       id: 'arriving',
-      label: '오늘 맡기러 와요',
+      label: '금일 방문 예정',
       items: view.arrivingToday.map((booking) => ({
         booking,
         hint: formatRemaining(msUntil(booking.dropOffAt)).replace('남음', '뒤 도착'),
@@ -57,7 +59,7 @@ export default function TodayPage() {
     },
     {
       id: 'noshow',
-      label: '노쇼',
+      label: '노쇼 관리',
       items: view.noShowCandidates.map((booking) => ({
         booking,
         hint: `${formatTime(booking.dropOffAt)} 예약 · 노쇼로 처리할 수 있어요`,
@@ -66,9 +68,32 @@ export default function TodayPage() {
     },
   ];
 
+  const todayKey = toDateKey(now);
+  const todayBookings = state.bookings.filter((booking) => toDateKey(new Date(booking.dropOffAt)) === todayKey);
+  const handled = todayBookings.filter((booking) => booking.status === 'completed' || booking.status === 'no_show').length;
+  const monthTotal = summarizeSettlement(state.bookings, monthPeriod(now), state.policy).totalKrw;
+  const openSection = sections.find((section) => section.id === open) ?? null;
+
   return (
     <>
       <h1 className="sr-only">오늘</h1>
+      <section className="home-strip" aria-label="오늘 요약">
+        <div className="home-stat">
+          <p className="home-stat-label">오늘 예약</p>
+          <p className="home-stat-value">{todayBookings.length}</p>
+          <p className="home-stat-sub">{handled}/{todayBookings.length} 처리</p>
+        </div>
+        <div className="home-stat">
+          <p className="home-stat-label">현재 보관</p>
+          <p className="home-stat-value">{view.bagsInStorage}</p>
+          <p className="home-stat-sub">짐</p>
+        </div>
+        <div className="home-stat">
+          <p className="home-stat-label">이번 달 예상 수익</p>
+          <p className="home-stat-value is-money">{formatKrw(monthTotal)}</p>
+        </div>
+      </section>
+
       <nav className="quick-grid" aria-label="바로가기">
         {QUICK.map((item) => (
           <Link key={item.href} href={item.href} className="quick-item">
@@ -81,33 +106,31 @@ export default function TodayPage() {
         ))}
       </nav>
 
-      <div className="fold-list">
-        {sections.map((section) => {
-          const expanded = open === section.id;
-          return (
-            <section key={section.id} className={`fold${expanded ? ' is-open' : ''}`}>
-              <button type="button" className="fold-row" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : section.id)}>
-                <span className="fold-label">{section.label}</span>
-                <span className="section-count">{section.items.length}</span>
-                <span className="fold-chevron" aria-hidden="true">
-                  <Icon name="chevron" size={18} />
-                </span>
+      <section className="section">
+        <h2 className="section-title">예약 현황 보기</h2>
+        <div className="tile-grid">
+          {sections.map((section) => {
+            const expanded = open === section.id;
+            return (
+              <button key={section.id} type="button" className={`tile${expanded ? ' is-open' : ''}`} aria-expanded={expanded} onClick={() => setOpen(expanded ? null : section.id)}>
+                <span className="tile-count">{section.items.length}</span>
+                <span className="tile-label">{section.label}</span>
               </button>
-              {expanded ? (
-                section.items.length === 0 ? (
-                  <p className="empty">예약이 없어요.</p>
-                ) : (
-                  <div className="stack">
-                    {section.items.map((item) => (
-                      <BookingCard key={item.booking.id} booking={item.booking} now={now} hint={item.hint} hintTone={item.hintTone} />
-                    ))}
-                  </div>
-                )
-              ) : null}
-            </section>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+        {openSection ? (
+          openSection.items.length === 0 ? (
+            <p className="empty">예약이 없어요.</p>
+          ) : (
+            <div className="stack">
+              {openSection.items.map((item) => (
+                <BookingCard key={item.booking.id} booking={item.booking} now={now} hint={item.hint} hintTone={item.hintTone} />
+              ))}
+            </div>
+          )
+        ) : null}
+      </section>
     </>
   );
 }
