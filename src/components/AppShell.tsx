@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { toDateKey } from '@/domain/time';
 import { usePartner } from '@/state/PartnerProvider';
+import { unreadCount } from '@/state/selectors';
 import { Icon } from './icons';
 import { NoticeToast } from './NoticeToast';
 
@@ -13,6 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const todayKey = toDateKey(now);
   const isPaused = state.settings.pausedOn === todayKey;
   const pending = state.bookings.filter((booking) => booking.status === 'pending_approval').length;
+  const unread = unreadCount(state.messages);
   const pathname = usePathname();
   const inThread = pathname.startsWith('/chats/') && pathname.length > '/chats/'.length;
 
@@ -27,6 +29,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/bookings" className="icon-btn" aria-label={pending > 0 ? `예약 알림, 확인 필요 ${pending}건` : '예약 알림'}>
             <Icon name="bell" size={20} />
             {pending > 0 ? <span className="icon-dot">{pending}</span> : null}
+          </Link>
+          <Link href="/chats" className="icon-btn" aria-label={unread > 0 ? `채팅, 안 읽음 ${unread}건` : '채팅'}>
+            <Icon name="message" size={20} />
+            {unread > 0 ? <span className="icon-dot">{unread}</span> : null}
           </Link>
           <Link href="/settings" className="icon-btn" aria-label="설정">
             <Icon name="settings" size={20} />
