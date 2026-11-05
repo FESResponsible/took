@@ -509,8 +509,18 @@ body{background:#fff;background-image:none;color:#213A3C}
 .stores-more{display:flex;margin:28px auto 0;min-width:168px;padding:14px 28px;border:1px solid #D5EFEA;border-radius:999px;background:#fff;color:#213A3C;font-weight:600;font-size:15px;justify-content:center}
 .stores-more:hover{background:#F1FBF8}
 .hero h1{margin-top:0}
-.search-submit,.search-submit:hover{color:#fff;font-family:Pretendard,sans-serif;font-weight:600;font-size:16px}
+.search-submit,.search-submit:hover{color:#fff;font-family:Pretendard,sans-serif;font-weight:600;font-size:16px;white-space:nowrap;width:max-content;min-width:max-content;justify-self:end;padding-inline:18px}
 .search-submit svg{stroke:#fff}
+.search-bar{grid-template-columns:minmax(160px,1.05fr) minmax(220px,2.05fr) minmax(120px,.8fr) max-content}
+.dev-lock{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:4px}
+.dev-lock[hidden],#dev-panel[hidden]{display:none}
+.dev-lock label{font-weight:600}
+.dev-lock input{width:100%;border:1px solid var(--line);border-radius:9px;padding:12px;font-size:14px;background:#fff;color:var(--ink)}
+.dev-lock .button{margin-top:6px}
+.site-header{min-height:80px}
+.header-inner{min-height:80px;padding-top:8px}
+@media(max-width:1100px){.search-bar{grid-template-columns:minmax(140px,.9fr) minmax(200px,1.7fr) minmax(110px,.7fr) max-content}}
+@media(max-width:900px){.search-submit{width:100%;min-width:0;justify-self:stretch}}
 .button-primary,.button-primary:hover,.area-filters button.active,.journey-tab[aria-selected="true"],.stay-day.is-selected,.stay-time.is-selected,.scale-choice:has(input:checked) span{color:#fff;font-weight:600}
 .button-primary svg,.area-filters button.active svg,.journey-tab[aria-selected="true"] svg{stroke:#fff}
 .store-image-button .store-category{position:absolute;z-index:1;top:10px;left:10px;bottom:auto;max-width:calc(100% - 58px);margin:0;padding:6px 8px;border-radius:7px;background:rgba(78,102,104,.62);color:#fff;font-weight:600;line-height:1.3;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}

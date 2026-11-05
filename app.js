@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea } from './model.js?v=e5fadadbe0a4';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=6f331f067f83';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=0e9836654ba5';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=706daecde75b';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=88e37e6485ce';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=7a08fcd0c549';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -270,8 +270,10 @@ function currentQuote() {
     plan,
     count: state.bookingCount,
     shoppingBagCount: state.shoppingBags,
+    date: $('#booking-date')?.value,
     start: $('#booking-start')?.value,
-    end: plan === 'hour' ? $('#booking-end')?.value : '',
+    endDate: plan === 'day' ? ($('#booking-end-date')?.value || '') : '',
+    end: plan === 'hour' ? $('#booking-end')?.value : ($('#booking-end-clock')?.value || ''),
     plus: Boolean($('#booking-plus-option')?.checked)
   });
 }
@@ -296,19 +298,22 @@ function syncBookingPrice() {
   if (bagMinus) bagMinus.disabled = state.shoppingBags === 0;
   if (bagPlus) bagPlus.disabled = state.shoppingBags >= count;
   let priced = null;
-  try { priced = currentQuote(); } catch { priced = null; }
+  let quoteError = '';
+  try { priced = currentQuote(); } catch (error) { priced = null; quoteError = error.message; }
   const storageNode = $('#booking-storage');
   const plusNode = $('#booking-plus-fee');
   const total = $('#booking-total');
   const formulaNode = $('#booking-formula');
   const notes = $('#booking-adjust');
-  if (priced) {
+  const quoteErrors = $('#booking-errors');
+  const submit = $('#booking-form .booking-submit');
+  if (priced && Number.isFinite(priced.total) && priced.total >= 0) {
     if (storageNode) storageNode.textContent = money(priced.storage);
     if (plusNode) plusNode.textContent = money(priced.plusFee);
     if (total) total.textContent = money(priced.total);
     if (formulaNode) {
       const units = unitPhrase(priced.units, 'item');
-      if (priced.plan !== 'hour') formulaNode.textContent = t('formula.day', { money: money(PRICING.dayRate), units });
+      if (priced.plan !== 'hour') formulaNode.textContent = t('formula.day', { money: money(PRICING.dayRate), days: unitPhrase(priced.billedDays, 'day'), units });
       else if (priced.capped && priced.billedHours <= PRICING.dayHours) formulaNode.textContent = t('formula.cap', { money: money(PRICING.dayRate), units });
       else if (priced.capped) {
         const days = Math.floor(priced.billedHours / PRICING.dayHours);
@@ -319,6 +324,7 @@ function syncBookingPrice() {
       } else formulaNode.textContent = t('formula.hour', { money: money(PRICING.hourRate), hours: unitPhrase(priced.billedHours, 'hour'), units });
     }
     const messages = [];
+    if (priced.plan !== 'hour') messages.push(t('note.dayBasis'));
     if (priced.shoppingBagCount > 0) messages.push(t('note.bags', { bags: formatNumber(priced.shoppingBagCount), units: formatNumber(priced.bagUnits) }));
     if (priced.minimumApplied) messages.push(t('note.minimum', { hours: formatNumber(PRICING.minHours) }));
     if (priced.capped) messages.push(t('note.cap'));
@@ -326,9 +332,19 @@ function syncBookingPrice() {
       notes.hidden = messages.length === 0;
       notes.textContent = messages.join(' ');
     }
-  } else if (formulaNode) {
-    formulaNode.textContent = t('formula.check');
-    if (notes) notes.hidden = true;
+    if (quoteErrors) quoteErrors.hidden = true;
+    if (submit) submit.disabled = false;
+  } else {
+    if (storageNode) storageNode.textContent = '—';
+    if (plusNode) plusNode.textContent = '—';
+    if (total) total.textContent = '—';
+    if (formulaNode) formulaNode.textContent = quoteError ? translateError(quoteError) : t('formula.check');
+    if (notes) { notes.hidden = true; notes.textContent = ''; }
+    if (quoteErrors) {
+      quoteErrors.hidden = false;
+      quoteErrors.textContent = translateError(quoteError || '시간을 확인해 주세요.');
+    }
+    if (submit) submit.disabled = true;
   }
   const countNode = $('#booking-count');
   if (countNode) countNode.textContent = count;
@@ -553,12 +569,22 @@ function openStore(id, source) {
   }
 }
 
+function stayWhen(booking) {
+  if (booking.plan === 'hour') return escapeHtml(booking.start) + ' → ' + escapeHtml(booking.end);
+  if (booking.endDate && booking.end) {
+    const endLabel = booking.endDate === booking.date ? booking.end : formatDate(booking.endDate) + ' ' + booking.end;
+    return escapeHtml(booking.start + ' → ' + endLabel);
+  }
+  return escapeHtml(t('summary.start', { time: booking.start }));
+}
+
 function choiceSummary(booking) {
   const planLabel = booking.plan === 'hour' ? t('booking.hour') : t('booking.day');
-  const when = booking.plan === 'hour' ? escapeHtml(booking.start) + ' → ' + escapeHtml(booking.end) : escapeHtml(t('summary.start', { time: booking.start }));
+  const when = stayWhen(booking);
+  const days = booking.plan !== 'hour' && booking.billedDays ? '<div class="ticket-line"><span>' + escapeHtml(t('summary.days')) + '</span><b>' + escapeHtml(unitPhrase(booking.billedDays, 'day')) + '</b></div>' : '';
   const bags = booking.shoppingBagCount ? '<div class="ticket-line"><span>' + escapeHtml(t('summary.bags')) + '</span><b>' + escapeHtml(t('summary.bagValue', { count: formatNumber(booking.shoppingBagCount), units: formatNumber(booking.units) })) + '</b></div>' : '';
   const plus = '<div class="ticket-line"><span>' + escapeHtml(t('booking.plusFee')) + '</span><b>' + escapeHtml(booking.plus ? t('summary.plusOn') : t('summary.plusOff')) + '</b></div>';
-  return '<div class="ticket-line"><span>' + escapeHtml(t('summary.date')) + '</span><b>' + escapeHtml(dateLabel(booking.date)) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.time')) + '</span><b>' + when + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.plan')) + '</span><b>' + escapeHtml(planLabel) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.luggage')) + '</span><b>' + escapeHtml(t('summary.luggageValue', { count: formatNumber(booking.count), note: booking.note.trim() })) + '</b></div>' + bags + plus + '<div class="ticket-line"><span>' + escapeHtml(t('booking.total')) + '</span><b>' + escapeHtml(money(booking.total)) + '</b></div>';
+  return '<div class="ticket-line"><span>' + escapeHtml(t('summary.date')) + '</span><b>' + escapeHtml(dateLabel(booking.date)) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.time')) + '</span><b>' + when + '</b></div>' + days + '<div class="ticket-line"><span>' + escapeHtml(t('summary.plan')) + '</span><b>' + escapeHtml(planLabel) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.luggage')) + '</span><b>' + escapeHtml(t('summary.luggageValue', { count: formatNumber(booking.count), note: booking.note.trim() })) + '</b></div>' + bags + plus + '<div class="ticket-line"><span>' + escapeHtml(t('booking.total')) + '</span><b>' + escapeHtml(money(booking.total)) + '</b></div>';
 }
 
 function scaleChoices(name) {
@@ -601,7 +627,9 @@ function saveTrial(booking) {
     storeId: state.selectedStore.id,
     date: booking.date,
     start: booking.start,
-    end: booking.plan === 'hour' ? booking.end : '',
+    endDate: booking.plan === 'day' ? booking.endDate : '',
+    end: booking.end || '',
+    billedDays: booking.billedDays,
     count: booking.count,
     plan: booking.plan,
     note: String(booking.note || '').trim(),
@@ -626,8 +654,10 @@ function backToBooking() {
   openStore(state.selectedStore.id, 'refresh');
   restoreBooking({
     date: booking.date,
+    endDate: booking.endDate,
     start: booking.start,
-    end: booking.end,
+    end: booking.plan === 'hour' ? booking.end : '',
+    endClock: booking.plan === 'day' ? booking.end : '',
     note: booking.note,
     plan: booking.plan,
     plus: Boolean(booking.plus),
@@ -641,7 +671,7 @@ function showMvp(booking) {
   $('#store-dialog').classList.remove('pay-open');
   const hesitations = ['price', 'unfamiliar', 'distance', 'hours', 'loss', 'payment', 'none'].map(value => [value, t('hesitation.' + value)]);
   $('#store-dialog').classList.add('survey-open');
-  $('#store-dialog-content').innerHTML = '<div class="mvp-reveal"><div class="mvp-heart" aria-hidden="true">' + icon('heart') + '</div><p class="mvp-kicker">THANK YOU FOR TRYING TooK</p><h2 id="store-title">' + t('mvp.title') + '</h2><p class="mvp-lead">' + t('mvp.lead') + '</p><p class="mvp-note">' + escapeHtml(t('mvp.note')) + '</p><div class="mvp-tabs" role="tablist" aria-label="' + escapeHtml(t('mvp.tabs')) + '"><button type="button" id="mvp-tab-survey" role="tab" aria-selected="true" aria-controls="mvp-panel-survey" data-mvp-tab="survey">' + escapeHtml(t('mvp.survey')) + '</button><button type="button" id="mvp-tab-reservation" role="tab" aria-selected="false" aria-controls="mvp-panel-reservation" data-mvp-tab="reservation" tabindex="-1">' + escapeHtml(t('mvp.reservation')) + '</button></div><div id="mvp-panel-survey" role="tabpanel" aria-labelledby="mvp-tab-survey"><form id="survey-form"><div class="survey-question"><h3>' + escapeHtml(t('mvp.q1')) + '</h3>' + scaleChoices('intent') + '<div class="scale-caption"><span>' + escapeHtml(t('mvp.low')) + '</span><span>' + escapeHtml(t('mvp.high')) + '</span></div></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q2')) + '</h3>' + wordChoices('priceFeel', [{ value: 'cheap', label: t('mvp.cheap') }, { value: 'fair', label: t('mvp.fair') }, { value: 'bit-high', label: t('mvp.bitHigh') }, { value: 'too-high', label: t('mvp.tooHigh') }]) + '</div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q3')) + '</h3><label class="won-field"><input id="survey-max-price" name="maxPrice" type="number" inputmode="numeric" min="0" max="1000000" step="100" required placeholder="' + escapeHtml(t('mvp.pricePh')) + '"><span>' + escapeHtml(t('mvp.won')) + '</span></label></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q4', { money: money(PRICING.plusRate) })) + '</h3>' + wordChoices('plusFeel', [{ value: 'no', label: t('mvp.no') }, { value: 'maybe', label: t('mvp.maybe') }, { value: 'yes', label: t('mvp.yes') }]) + '</div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q5')) + '</h3>' + scaleChoices('ease') + '<div class="scale-caption"><span>' + escapeHtml(t('mvp.hard')) + '</span><span>' + escapeHtml(t('mvp.easy')) + '</span></div></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q6')) + ' <small>' + escapeHtml(t('mvp.multi')) + '</small></h3><div class="pill-row">' + hesitations.map(item => '<label class="pill-choice"><input type="checkbox" name="hesitation" value="' + item[0] + '"><span>' + escapeHtml(item[1]) + '</span></label>').join('') + '</div></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q7')) + ' <small>' + escapeHtml(t('mvp.optional')) + '</small></h3><textarea name="wish" maxlength="400" placeholder="' + escapeHtml(t('mvp.wishPh')) + '"></textarea></div><label class="survey-sms"><input type="checkbox" name="sms"><span>' + escapeHtml(t('mvp.sms')) + '</span></label><div id="survey-errors" class="booking-errors" role="alert" hidden></div><div class="mvp-actions"><button class="button button-primary" type="submit">' + escapeHtml(t('mvp.send')) + icon('arrow') + '</button><button class="button button-outline" type="button" id="mvp-later">' + escapeHtml(t('mvp.later')) + '</button></div></form><div id="survey-thanks" hidden><span class="success-icon">' + icon('check') + '</span><h3>' + escapeHtml(t('mvp.thanksTitle')) + '</h3><p>' + escapeHtml(t('mvp.thanksBody')) + '</p></div></div><div id="mvp-panel-reservation" role="tabpanel" aria-labelledby="mvp-tab-reservation" hidden><div class="reservation-ticket"><strong>' + escapeHtml(displayName(state.selectedStore)) + '</strong>' + choiceSummary(booking) + '</div><p class="mvp-note">' + escapeHtml(t('mvp.priceNote')) + '</p></div></div>';
+  $('#store-dialog-content').innerHTML = '<div class="mvp-reveal"><div class="mvp-heart" aria-hidden="true">' + icon('heart') + '</div><p class="mvp-kicker">THANK YOU FOR TRYING tooK</p><h2 id="store-title">' + t('mvp.title') + '</h2><p class="mvp-lead">' + t('mvp.lead') + '</p><p class="mvp-note">' + escapeHtml(t('mvp.note')) + '</p><div class="mvp-tabs" role="tablist" aria-label="' + escapeHtml(t('mvp.tabs')) + '"><button type="button" id="mvp-tab-survey" role="tab" aria-selected="true" aria-controls="mvp-panel-survey" data-mvp-tab="survey">' + escapeHtml(t('mvp.survey')) + '</button><button type="button" id="mvp-tab-reservation" role="tab" aria-selected="false" aria-controls="mvp-panel-reservation" data-mvp-tab="reservation" tabindex="-1">' + escapeHtml(t('mvp.reservation')) + '</button></div><div id="mvp-panel-survey" role="tabpanel" aria-labelledby="mvp-tab-survey"><form id="survey-form"><div class="survey-question"><h3>' + escapeHtml(t('mvp.q1')) + '</h3>' + scaleChoices('intent') + '<div class="scale-caption"><span>' + escapeHtml(t('mvp.low')) + '</span><span>' + escapeHtml(t('mvp.high')) + '</span></div></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q2')) + '</h3>' + wordChoices('priceFeel', [{ value: 'cheap', label: t('mvp.cheap') }, { value: 'fair', label: t('mvp.fair') }, { value: 'bit-high', label: t('mvp.bitHigh') }, { value: 'too-high', label: t('mvp.tooHigh') }]) + '</div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q3')) + '</h3><label class="won-field"><input id="survey-max-price" name="maxPrice" type="number" inputmode="numeric" min="0" max="1000000" step="100" required placeholder="' + escapeHtml(t('mvp.pricePh')) + '"><span>' + escapeHtml(t('mvp.won')) + '</span></label></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q4', { money: money(PRICING.plusRate) })) + '</h3>' + wordChoices('plusFeel', [{ value: 'no', label: t('mvp.no') }, { value: 'maybe', label: t('mvp.maybe') }, { value: 'yes', label: t('mvp.yes') }]) + '</div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q5')) + '</h3>' + scaleChoices('ease') + '<div class="scale-caption"><span>' + escapeHtml(t('mvp.hard')) + '</span><span>' + escapeHtml(t('mvp.easy')) + '</span></div></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q6')) + ' <small>' + escapeHtml(t('mvp.multi')) + '</small></h3><div class="pill-row">' + hesitations.map(item => '<label class="pill-choice"><input type="checkbox" name="hesitation" value="' + item[0] + '"><span>' + escapeHtml(item[1]) + '</span></label>').join('') + '</div></div><div class="survey-question"><h3>' + escapeHtml(t('mvp.q7')) + ' <small>' + escapeHtml(t('mvp.optional')) + '</small></h3><textarea name="wish" maxlength="400" placeholder="' + escapeHtml(t('mvp.wishPh')) + '"></textarea></div><label class="survey-sms"><input type="checkbox" name="sms"><span>' + escapeHtml(t('mvp.sms')) + '</span></label><div id="survey-errors" class="booking-errors" role="alert" hidden></div><div class="mvp-actions"><button class="button button-primary" type="submit">' + escapeHtml(t('mvp.send')) + icon('arrow') + '</button><button class="button button-outline" type="button" id="mvp-later">' + escapeHtml(t('mvp.later')) + '</button></div></form><div id="survey-thanks" hidden><span class="success-icon">' + icon('check') + '</span><h3>' + escapeHtml(t('mvp.thanksTitle')) + '</h3><p>' + escapeHtml(t('mvp.thanksBody')) + '</p></div></div><div id="mvp-panel-reservation" role="tabpanel" aria-labelledby="mvp-tab-reservation" hidden><div class="reservation-ticket"><strong>' + escapeHtml(displayName(state.selectedStore)) + '</strong>' + choiceSummary(booking) + '</div><p class="mvp-note">' + escapeHtml(t('mvp.priceNote')) + '</p></div></div>';
   $('#store-dialog').scrollTop = 0;
 }
 
@@ -665,7 +695,8 @@ function submitBooking(event) {
   const booking = {
     date: $('#booking-date').value,
     start: $('#booking-start').value,
-    end: plan === 'hour' ? $('#booking-end').value : '',
+    endDate: plan === 'day' ? $('#booking-end-date').value : '',
+    end: plan === 'hour' ? $('#booking-end').value : ($('#booking-end-clock').value || ''),
     count: state.bookingCount,
     plan,
     note: $('#booking-note').value
@@ -677,11 +708,15 @@ function submitBooking(event) {
     return;
   }
   const priced = currentQuote();
+  if (!Number.isFinite(priced.total) || priced.total < 0) return;
   booking.hours = priced.billedHours;
+  booking.billedDays = priced.billedDays;
   booking.totalCount = priced.totalCount;
   booking.shoppingBagCount = priced.shoppingBagCount;
   booking.units = priced.units;
   booking.plus = priced.plus;
+  booking.storage = priced.storage;
+  booking.plusFee = priced.plusFee;
   booking.total = priced.total;
   track('booking_submit', { store_id: state.selectedStore.id, store_name: state.selectedStore.name, value: booking.total, plan: booking.plan, units: booking.units, plus: booking.plus });
   showPay(booking);
@@ -729,8 +764,9 @@ function getBookings() {
 }
 
 function ticketHTML(booking) {
-  const when = booking.plan === 'hour' ? escapeHtml(booking.start) + ' → ' + escapeHtml(booking.end) : escapeHtml(t('summary.start', { time: booking.start }));
-  return '<div class="ticket-line"><span>' + escapeHtml(t('summary.date')) + '</span><b>' + escapeHtml(dateLabel(booking.date)) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.time')) + '</span><b>' + when + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.luggage')) + '</span><b>' + escapeHtml(t('summary.luggageValue', { count: formatNumber(booking.count), note: booking.note })) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.guide')) + '</span><b>' + escapeHtml(money(booking.total)) + '</b></div>';
+  const when = stayWhen(booking);
+  const days = booking.plan !== 'hour' && booking.billedDays ? '<div class="ticket-line"><span>' + escapeHtml(t('summary.days')) + '</span><b>' + escapeHtml(unitPhrase(booking.billedDays, 'day')) + '</b></div>' : '';
+  return '<div class="ticket-line"><span>' + escapeHtml(t('summary.date')) + '</span><b>' + escapeHtml(dateLabel(booking.date)) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.time')) + '</span><b>' + when + '</b></div>' + days + '<div class="ticket-line"><span>' + escapeHtml(t('summary.luggage')) + '</span><b>' + escapeHtml(t('summary.luggageValue', { count: formatNumber(booking.count), note: booking.note })) + '</b></div><div class="ticket-line"><span>' + escapeHtml(t('summary.guide')) + '</span><b>' + escapeHtml(money(booking.total)) + '</b></div>';
 }
 
 function renderBookings() {
@@ -766,32 +802,40 @@ $$('[data-category]').forEach(button => button.addEventListener('click', () => {
 function buildCityButtons() {
   const group = document.querySelector('[data-filter="region"]');
   if (!group) return;
-  const counts = new Map();
-  STORES.forEach(store => counts.set(store.city, (counts.get(store.city) || 0) + 1));
-  [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'))
-    .forEach(([city]) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.dataset.area = city;
-      button.setAttribute('aria-pressed', 'false');
-      button.textContent = labelPlace(city);
-      group.append(button);
-    });
+  regionChoices().forEach(choice => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.area = choice.name;
+    button.setAttribute('aria-pressed', 'false');
+    button.textContent = labelPlace(choice.name);
+    group.append(button);
+  });
+}
+
+function subAreas(resolved) {
+  if (resolved.city) {
+    const districts = districtsFor(resolved.city);
+    if (districts.length) return { names: districts, allArea: resolved.city };
+  }
+  if (resolved.province) {
+    const cities = citiesForProvince(resolved.province);
+    if (cities.length > 1) return { names: cities, allArea: resolved.province };
+  }
+  return { names: [], allArea: '' };
 }
 
 function renderDistricts() {
   const group = document.querySelector('[data-filter="district"]');
   if (!group) return;
-  const { city } = resolveArea(state.area);
-  const names = city ? districtsFor(city) : [];
+  const resolved = resolveArea(state.area);
+  const { names, allArea } = subAreas(resolved);
   group.hidden = names.length === 0;
   group.replaceChildren();
   if (!names.length) return;
   const all = document.createElement('button');
   all.type = 'button';
-  all.dataset.area = city;
-  all.textContent = t('filter.cityAll', { city: labelPlace(city) });
+  all.dataset.area = allArea;
+  all.textContent = t('filter.cityAll', { city: labelPlace(allArea) });
   group.append(all);
   names.forEach(name => {
     const button = document.createElement('button');
@@ -803,15 +847,15 @@ function renderDistricts() {
 }
 
 function paintAreaButtons() {
-  const { city, district } = resolveArea(state.area);
+  const { province, city, district } = resolveArea(state.area);
   $$('[data-filter="region"] [data-area]').forEach(button => {
-    const active = button.dataset.area === '전체' ? !city : button.dataset.area === city;
+    const active = button.dataset.area === '전체' ? !city && !province : button.dataset.area === (province || city);
     button.textContent = button.dataset.area === '전체' ? t('filter.all') : labelPlace(button.dataset.area);
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   });
   $$('[data-filter="district"] [data-area]').forEach(button => {
-    const active = district ? button.dataset.area === district : button.dataset.area === city;
+    const active = district ? button.dataset.area === district : button.dataset.area === (city || province);
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   });
@@ -1184,6 +1228,7 @@ function snapshotBooking() {
     endDate: $('#booking-end-date')?.value || '',
     start: $('#booking-start')?.value || '',
     end: $('#booking-end')?.value || '',
+    endClock: $('#booking-end-clock')?.value || '',
     note: $('#booking-note')?.value || '',
     plan: selectedPlan(),
     plus: Boolean($('#booking-plus-option')?.checked),
@@ -1206,6 +1251,8 @@ function restoreBooking(snap) {
   syncBookingPrice();
   const end = $('#booking-end');
   if (end && [...end.options].some(option => option.value === snap.end)) end.value = snap.end;
+  const clock = $('#booking-end-clock');
+  if (clock && snap.endClock) clock.value = snap.endClock;
   const note = $('#booking-note');
   if (note) note.value = snap.note;
   const plus = $('#booking-plus-option');
@@ -1213,8 +1260,6 @@ function restoreBooking(snap) {
   const consent = $('#booking-form [name="payConsent"]');
   if (consent) consent.checked = snap.consent;
   syncBookingPrice();
-  const clock = $('#booking-end-clock');
-  if (clock && snap.end) clock.value = snap.end;
   paintStayButtons();
 }
 function refreshOpenSurfaces() {
@@ -1304,15 +1349,43 @@ if (journeyTabs) {
   });
 }
 applyLanguage();
-$('#open-dev').addEventListener('click', () => {
+const DEV_PASSWORD = 'FES';
+function lockDevDialog() {
+  const lock = $('#dev-lock');
+  const panel = $('#dev-panel');
+  const field = $('#dev-password');
+  const error = $('#dev-password-error');
+  if (lock) lock.hidden = false;
+  if (panel) panel.hidden = true;
+  if (field) field.value = '';
+  if (error) error.hidden = true;
+}
+function unlockDevDialog() {
+  $('#dev-password-error').hidden = true;
+  $('#dev-lock').hidden = true;
+  $('#dev-panel').hidden = false;
   $('#hide-real-names').checked = hideRealNames();
   const mode = document.documentElement.dataset.copy === 'daily' ? 'daily' : 'tourism';
   $$('input[name="copy-mode"]').forEach(input => { input.checked = input.value === mode; });
+}
+$('#open-dev').addEventListener('click', () => {
+  lockDevDialog();
   $('#dev-dialog').showModal();
+  $('#dev-password').focus();
 });
+$('#dev-lock').addEventListener('submit', event => {
+  event.preventDefault();
+  if ($('#dev-password').value.trim() !== DEV_PASSWORD) {
+    $('#dev-password-error').hidden = false;
+    $('#dev-password').focus();
+    return;
+  }
+  unlockDevDialog();
+});
+$('#dev-dialog').addEventListener('close', lockDevDialog);
 $$('input[name="copy-mode"]').forEach(input => {
   input.addEventListener('change', () => {
-    if (!input.checked) return;
+    if ($('#dev-panel').hidden || !input.checked) return;
     const mode = input.value === 'daily' ? 'daily' : 'tourism';
     storage.set(COPY_MODE_KEY, mode);
     applyCopy(mode);
@@ -1333,16 +1406,10 @@ $('#hide-real-names').addEventListener('change', event => {
 function applyOptionVisibility() {
   const has24 = STORES.some(store => store.hours24);
   const hasCold = STORES.some(store => store.cold);
-  const tourism = document.documentElement.dataset.copy !== 'daily';
   $$('[data-requires="hours24"]').forEach(element => { element.hidden = !has24; });
-  $$('[data-requires="cold"]').forEach(element => { element.hidden = tourism || !hasCold; });
+  $$('[data-requires="cold"]').forEach(element => { element.hidden = !hasCold; });
   const coldFilter = $('#cold-only')?.closest('label');
-  if (coldFilter) coldFilter.hidden = tourism;
-  if (tourism && state.cold) {
-    state.cold = false;
-    const input = $('#cold-only');
-    if (input) input.checked = false;
-  }
+  if (coldFilter) coldFilter.hidden = false;
 }
 applyOptionVisibility();
 initAnalytics();

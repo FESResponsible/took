@@ -16,7 +16,7 @@ const P = (en, hans, hant, aliases = []) => ({ en, 'zh-Hans': hans, 'zh-Hant': h
 
 const MESSAGES = {
   'lang.group': L('언어', 'Language', '语言', '語言'),
-  'a11y.home': L('TooK 홈', 'TooK home', 'TooK 首页', 'TooK 首頁'),
+  'a11y.home': L('tooK 홈', 'tooK home', 'tooK 首页', 'tooK 首頁'),
   'a11y.mainNav': L('주 메뉴', 'Main menu', '主菜单', '主選單'),
   'a11y.mobileNav': L('모바일 메뉴', 'Mobile menu', '手机菜单', '手機選單'),
   'a11y.menuOpen': L('메뉴 열기', 'Open menu', '打开菜单', '打開選單'),
@@ -65,13 +65,13 @@ const MESSAGES = {
   'search.priceNote': L('요금은 짐 종류와 상관없이 같아요. 시간당 1,000원, 하루 최대 5,000원이에요. 쇼핑백은 3개까지 1개 요금이에요.', 'The rate is the same for every bag type. ₩1,000 per hour, up to ₩5,000 per day. Shopping bags are billed as one item for every three.', '费用与行李种类无关。每小时 1,000韩元，每天最多 5,000韩元。购物袋每 3 件按 1 件计费。', '費用與行李種類無關。每小時 1,000韓元，每天最多 5,000韓元。購物袋每 3 件按 1 件計費。'),
   'story.when': L('언제 쓸까요?', 'When is it useful?', '什么时候用？', '什麼時候用？'),
   'story.kicker': C(
-    L('TooK과 이어가는 여행', 'Keep the trip going with TooK', '和 TooK 一起继续旅行', '和 TooK 一起繼續旅行'),
-    L('TooK과 이어가는 가벼운 발걸음', 'A lighter step with TooK', '和 TooK 一起把脚步变轻', '和 TooK 一起把腳步變輕')
+    L('tooK과 이어가는 여행', 'Keep the trip going with tooK', '和 tooK 一起继续旅行', '和 tooK 一起繼續旅行'),
+    L('tooK과 이어가는 가벼운 발걸음', 'A lighter step with tooK', '和 tooK 一起把脚步变轻', '和 tooK 一起把腳步變輕')
   ),
   'journey.kicker': L('맡기기 전후', 'Before and after', '寄存前后', '寄存前後'),
   'journey.title': L('같은 일정, 달라지는 짐 보관 동선', 'The same plan, a different way to store the bags', '同样的行程，不同的行李寄存路线', '同樣的行程，不同的行李寄存路線'),
-  'journey.before': L('TooK 이 없을 때', 'Without TooK', '没有 TooK 时', '沒有 TooK 時'),
-  'journey.after': L('TooK과 함께하면', 'Together with TooK', '和 TooK 一起', '和 TooK 一起'),
+  'journey.before': L('tooK 이 없을 때', 'Without tooK', '没有 tooK 时', '沒有 tooK 時'),
+  'journey.after': L('tooK과 함께하면', 'Together with tooK', '和 tooK 一起', '和 tooK 一起'),
   'journey.example': L('하나의 예시예요', 'One example', '这是一个例子', '這是一個例子'),
   'journey.storeNote': L('보관 가능한 짐과 맡기고 찾는 시간은 매장별로 확인해 주세요.', 'Check with each shop which bags they take, and when you can drop them off and pick them up.', '可寄存的行李，以及寄存和取回时间，请按店铺确认。', '可寄存的行李，以及寄存和取回時間，請按店舖確認。'),
   'journey.tab.checkout': L('체크아웃 후', 'After checkout', '退房之后', '退房之後'),
@@ -218,7 +218,7 @@ const MESSAGES = {
   'care.title': L('잠시 맡기는 짐에도,<br>꼼꼼한 안심을.', 'Even a short drop-off<br>gets careful care.', '短暂寄存，<br>也仔细放心。', '短暫寄存，<br>也仔細放心。'),
   'care.intro': L('소중한 짐을 맡길 때 필요한 것들.<br>보관 과정을 더 분명하게 확인해요.', 'What you need when leaving something important.<br>The storage steps stay easy to check.', '寄存重要物品时需要的安排。<br>保管过程可以清楚确认。', '寄存重要物品時需要的安排。<br>保管過程可以清楚確認。'),
   'care.compTitle': L('모든 짐, 기본 30만 원까지 보상', 'Every bag includes cover up to ₩300,000', '每件行李基本保障到 30万韩元', '每件行李基本保障到 30萬韓元'),
-  'care.compBody': L('맡긴 짐에 문제가 생기면 TooK이 직접 확인하고 보상해요.', 'If something happens to a stored bag, TooK checks it and covers it.', '寄存行李出问题，由 TooK 直接确认并补偿。', '寄存行李出問題，由 TooK 直接確認並補償。'),
+  'care.compBody': L('맡긴 짐에 문제가 생기면 tooK이 직접 확인하고 보상해요.', 'If something happens to a stored bag, tooK checks it and covers it.', '寄存行李出问题，由 tooK 直接确认并补偿。', '寄存行李出問題，由 tooK 直接確認並補償。'),
   'care.photoTitle': L('맡기고 찾을 때, 사진으로 확인', 'Photos when you drop off and pick up', '寄存和取回时拍照确认', '寄存和取回時拍照確認'),
   'care.photoBody': L('보관 전후의 짐 상태를 사진으로 남겨요.', 'The bag’s condition is photographed before and after storage.', '寄存前后都会留下行李状态照片。', '寄存前後都會留下行李狀態照片。'),
   'care.qrTitle': L('예약마다 다른 나만의 QR', 'A different QR code for every booking', '每次预约都有专属二维码', '每次預約都有專屬 QR code'),
@@ -273,6 +273,10 @@ const MESSAGES = {
   'dev.tourism': L('관광용', 'Tourism', '旅游', '旅遊'),
   'dev.daily': L('일상용', 'Everyday', '日常', '日常'),
   'dev.copyHelp': L('기본은 관광용이에요. 언어가 아니라 문구만 바뀝니다. 이 브라우저에 저장되고, 주소의 copy 값이 있으면 그 값이 우선해요.', 'Tourism is the default. This changes the wording, not the language. It stays in this browser, and a copy value in the address takes priority.', '默认是旅游文案。这里只改文案，不改语言。会保存在这个浏览器里；如果网址带有 copy，以网址为准。', '預設是旅遊文案。這裡只改文案，不改語言。會保存在這個瀏覽器裡；如果網址帶有 copy，以網址為準。'),
+  'dev.passwordLabel': L('비밀번호', 'Password', '密码', '密碼'),
+  'dev.passwordPlaceholder': L('비밀번호', 'Password', '密码', '密碼'),
+  'dev.passwordSubmit': L('확인', 'Continue', '确认', '確認'),
+  'dev.passwordError': L('비밀번호가 맞지 않아요.', 'That password does not match.', '密码不正确。', '密碼不正確。'),
   'bookings.kicker': L('YOUR LIGHT TICKETS', 'YOUR LIGHT TICKETS', 'YOUR LIGHT TICKETS', 'YOUR LIGHT TICKETS'),
   'bookings.title': L('내 예약', 'My bookings', '我的预约', '我的預約'),
   'bookings.close': L('내 예약 닫기', 'Close my bookings', '关闭我的预约', '關閉我的預約'),
@@ -343,7 +347,7 @@ const MESSAGES = {
   'booking.adjusted': L('이 공간 운영시간에 맞춰 시작 시간을 바꿔 두었어요.', 'The start time was adjusted to this spot’s hours.', '已按这个地点的营业时间调整开始时间。', '已按這個地點的營業時間調整開始時間。'),
   'booking.plan': L('요금제', 'Rate', '计费方式', '計費方式'),
   'booking.day': L('하루권', 'Day pass', '一日券', '一日券'),
-  'booking.dayPrice': L('개당 {money}', '{money} per bag', '每件 {money}', '每件 {money}'),
+  'booking.dayPrice': L('개당 하루 {money}', '{money} per bag a day', '每件每天 {money}', '每件每天 {money}'),
   'booking.hour': L('시간권', 'Hourly', '小时券', '小時券'),
   'booking.hourPrice': L('시간당 {money} ({min}시간부터, 하루 최대 {cap})', '{money} per hour (from {min} hours, daily cap {cap})', '每小时 {money}（{min}小时起，每天最多 {cap}）', '每小時 {money}（{min}小時起，每天最多 {cap}）'),
   'booking.end': L('찾는 시간', 'Pickup time', '取回时间', '取回時間'),
@@ -374,7 +378,7 @@ const MESSAGES = {
   'pay.history': L('체험 내역 보기', 'View tryout history', '查看体验记录', '查看體驗記錄'),
   'pay.close': L('닫기', 'Close', '关闭', '關閉'),
   'pay.feedback': L('의견 남기기', 'Leave a note', '留下意见', '留下意見'),
-  'formula.day': L('{money} × {units}', '{money} × {units}', '{money} × {units}', '{money} × {units}'),
+  'formula.day': L('{money} × {days} × {units}', '{money} × {days} × {units}', '{money} × {days} × {units}', '{money} × {days} × {units}'),
   'formula.cap': L('하루 최대 {money} × {units}', 'Daily cap {money} × {units}', '每天最多 {money} × {units}', '每天最多 {money} × {units}'),
   'formula.mix': L('{dayMoney} × {days} + {hourMoney} × {hours} × {units}', '{dayMoney} × {days} + {hourMoney} × {hours} × {units}', '{dayMoney} × {days} + {hourMoney} × {hours} × {units}', '{dayMoney} × {days} + {hourMoney} × {hours} × {units}'),
   'formula.mixNoRest': L('{dayMoney} × {days} × {units}', '{dayMoney} × {days} × {units}', '{dayMoney} × {days} × {units}', '{dayMoney} × {days} × {units}'),
@@ -383,6 +387,8 @@ const MESSAGES = {
   'note.bags': L('쇼핑백 {bags}개는 {units}개 요금으로 계산했어요', '{bags} shopping bags are billed as {units}', '购物袋 {bags} 件按 {units} 件计费', '購物袋 {bags} 件按 {units} 件計費'),
   'note.minimum': L('시간권은 {hours}시간부터예요', 'Hourly storage starts at {hours} hours', '小时券从 {hours} 小时起', '小時券從 {hours} 小時起'),
   'note.cap': L('하루 최대 요금이 적용됐어요', 'The daily cap is applied', '已套用每天上限', '已套用每天上限'),
+  'note.dayBasis': L('시작 시각부터 24시간마다 1일로 올림해요.', 'A day is 24 hours from the start time, rounded up.', '从开始时间起，每 24 小时算 1 天，不足的时间进位。', '從開始時間起，每 24 小時算 1 天，不足的時間進位。'),
+  'summary.days': L('보관 일수', 'Days', '天数', '天數'),
   'summary.date': L('날짜', 'Date', '日期', '日期'),
   'summary.time': L('시간', 'Time', '时间', '時間'),
   'summary.plan': L('요금제', 'Rate', '计费方式', '計費方式'),
@@ -397,7 +403,7 @@ const MESSAGES = {
   'mvp.tabs': L('설문과 예약', 'Survey and booking', '问卷和预约', '問卷和預約'),
   'mvp.survey': L('경험 설문', 'Experience survey', '体验问卷', '體驗問卷'),
   'mvp.reservation': L('내가 고른 내용', 'What I chose', '我选的内容', '我選的內容'),
-  'mvp.title': L('사실, TooK은 아직<br>정식 출시 전이에요.', 'TooK is not<br>fully launched yet.', '其实 TooK<br>还没有正式上线。', '其實 TooK<br>還沒有正式上線。'),
+  'mvp.title': L('사실, tooK은 아직<br>정식 출시 전이에요.', 'tooK is not<br>fully launched yet.', '其实 tooK<br>还没有正式上线。', '其實 tooK<br>還沒有正式上線。'),
   'mvp.lead': L('의견은 이 브라우저에만 남길 수 있어요.<br>실제 결제와 예약은 진행되지 않았고, 어떤 비용도 청구되지 않아요.', 'A note can stay in this browser only.<br>No real payment or reservation was made, and nothing is charged.', '意见只能留在这个浏览器里。<br>没有实际付款或预约，也不会收取任何费用。', '意見只能留在這個瀏覽器裡。<br>沒有實際付款或預約，也不會收取任何費用。'),
   'mvp.note': L('끝까지 골라 주신 경험이 저희에게 가장 정확한 답이에요. 1분만 더 들려주세요.', 'Finishing the choices gives us the clearest answer. One more minute, please.', '您走完这些选择，就是最准确的回答。请再给我们一分钟。', '您走完這些選擇，就是最準確的回答。請再給我們一分鐘。'),
   'mvp.q1': L('1. 정식으로 출시되면 실제로 이용할 것 같나요?', '1. If this launches, would you actually use it?', '1. 正式上线后，您觉得自己会使用吗？', '1. 正式上線後，您覺得自己會使用嗎？'),
@@ -447,19 +453,19 @@ const MESSAGES = {
   'error.order': L('찾는 시간을 시작 시간보다 늦게 선택해 주세요.', 'Choose a pickup time later than the start time.', '取回时间要晚于开始时间。', '取回時間要晚於開始時間。'),
   'error.generic': L('내용을 다시 확인해 주세요.', 'Please check this again.', '请再确认这项内容。', '請再確認這項內容。'),
   'copy.title': C(
-    L('TooK — 짐은 툭, 여행은 쭉', 'TooK — Drop your bags. Keep exploring.', 'TooK — 行李轻放，旅程继续', 'TooK — 行李輕放，旅程繼續'),
-    L('TooK — 짐은 툭, 발걸음은 가볍게', 'TooK — Drop your bags. Step lighter.', 'TooK — 行李轻放，脚步更轻', 'TooK — 行李輕放，腳步更輕')
+    L('tooK — 짐은 툭, 여행은 쭉', 'tooK — Drop your bags. Keep exploring.', 'tooK — 行李轻放，旅程继续', 'tooK — 行李輕放，旅程繼續'),
+    L('tooK — 짐은 툭, 발걸음은 가볍게', 'tooK — Drop your bags. Step lighter.', 'tooK — 行李轻放，脚步更轻', 'tooK — 行李輕放，腳步更輕')
   ),
   'copy.meta': C(
-    L('숙소나 보관함의 위치, 시간, 기간, 짐 크기가 내 여행과 다를 때, 동선에서 맡길 곳을 확인하고 여행을 이어가요. TooK.', 'When the place, hours, length, or bag size of your stay or a locker does not fit the trip, check a spot on your route and keep going. TooK.', '住宿或寄存柜的位置、时间、天数或行李大小和这次旅行不合适时，在自己的路线上确认可寄存的地方，然后继续走。TooK.', '住宿或寄存櫃的位置、時間、天數或行李大小和這次旅行不合適時，在自己的路線上確認可寄存的地方，然後繼續走。TooK.'),
-    L('쇼핑하다 늘어난 쇼핑백도, 약속 전에 들기 힘든 가방도, 다른 지역 콘서트나 출장 짐도. 일정 가까운 곳에 잠시 맡기고 발걸음을 가볍게 이어가세요. TooK.', 'Shopping bags pile up, some bags are awkward before the next plan, and a concert or work trip in another city can leave you carrying more. Leave them near the plan and keep your step light. TooK.', '购物袋变多、约定前不便携带，或其他城市的演唱会和出差行李，都可以先寄存在行程附近，让脚步更轻。TooK.', '購物袋變多、約定前不便攜帶，或其他城市的演唱會和出差行李，都可以先寄存在行程附近，讓腳步更輕。TooK.')
+    L('숙소나 보관함의 위치, 시간, 기간, 짐 크기가 내 여행과 다를 때, 동선에서 맡길 곳을 확인하고 여행을 이어가요. tooK.', 'When the place, hours, length, or bag size of your stay or a locker does not fit the trip, check a spot on your route and keep going. tooK.', '住宿或寄存柜的位置、时间、天数或行李大小和这次旅行不合适时，在自己的路线上确认可寄存的地方，然后继续走。tooK.', '住宿或寄存櫃的位置、時間、天數或行李大小和這次旅行不合適時，在自己的路線上確認可寄存的地方，然後繼續走。tooK.'),
+    L('쇼핑하다 늘어난 쇼핑백도, 약속 전에 들기 힘든 가방도, 다른 지역 콘서트나 출장 짐도. 일정 가까운 곳에 잠시 맡기고 발걸음을 가볍게 이어가세요. tooK.', 'Shopping bags pile up, some bags are awkward before the next plan, and a concert or work trip in another city can leave you carrying more. Leave them near the plan and keep your step light. tooK.', '购物袋变多、约定前不便携带，或其他城市的演唱会和出差行李，都可以先寄存在行程附近，让脚步更轻。tooK.', '購物袋變多、約定前不便攜帶，或其他城市的演唱會和出差行李，都可以先寄存在行程附近，讓腳步更輕。tooK.')
   ),
   'copy.hero-title': C(
     L('짐은 툭,<br>여행은 <span class="underlined">쭉</span>', 'Drop your bags.<br>Keep <span class="underlined">exploring</span>.', '行李轻放，<br>旅程<span class="underlined">继续</span>', '行李輕放，<br>旅程<span class="underlined">繼續</span>'),
     L('짐은 툭,<br>발걸음은 <span class="underlined">가볍게</span>', 'Drop your bags.<br>Step <span class="underlined">lighter</span>.', '行李轻放，<br>脚步<span class="underlined">更轻</span>', '行李輕放，<br>腳步<span class="underlined">更輕</span>')
   ),
   'copy.hero-description': C(
-    L('숙소나 보관함이 내 여행에 맞지 않을 때도,<br>짐 때문에 일정을 줄이거나 되돌아가지 않아요.', 'When your stay or a locker does not fit the trip,<br>keep going instead of cutting plans or doubling back for your bags.', '住宿或寄存柜和这次旅行不合适时，<br>不必为了行李缩短行程，也不必折返。', '住宿或寄存櫃和這次旅行不合適時，<br>不必為了行李縮短行程，也不必折返。'),
+    L('여행 동선에 짐을 맡길 곳이 없다고 하더라도,<br>짐 때문에 여행이 번거로워지지 않도록', 'Even if there is nowhere on your route to leave your bags,<br>keep the trip from becoming a hassle because of them.', '就算旅行路线上没有可以寄存行李的地方，<br>也不让行李把旅行变得麻烦。', '就算旅行路線上沒有可以寄存行李的地方，<br>也不讓行李把旅行變得麻煩。'),
     L('쇼핑하다 늘어난 쇼핑백도, 약속 전에 들기 힘든 가방도, 다른 지역 콘서트나 출장 짐도.<br>일정 가까운 곳에 잠시 맡기고 발걸음을 가볍게 이어가세요.', 'Shopping bags, a bag that is awkward before the next plan, or luggage from a concert or work trip in another city.<br>Leave it near the plan and keep your step light.', '购物袋、约定前不便拿的包，或其他城市演唱会和出差的行李。<br>先寄存在行程附近，让脚步更轻。', '購物袋、約定前不便拿的包，或其他城市演唱會和出差的行李。<br>先寄存在行程附近，讓腳步更輕。')
   ),
   'copy.hero-cta': C(
@@ -686,6 +692,13 @@ const PLACES = {
   '울산': P('Ulsan', '蔚山', '蔚山', ['ulsan']),
   '세종': P('Sejong', '世宗', '世宗', ['sejong']),
   '제주': P('Jeju', '济州', '濟州', ['jeju']),
+  '경기': P('Gyeonggi', '京畿', '京畿', ['gyeonggi', 'gyeonggi-do']),
+  '강원': P('Gangwon', '江原', '江原', ['gangwon', 'gangwon-do']),
+  '충북': P('Chungbuk', '忠北', '忠北', ['chungbuk', 'north chungcheong']),
+  '충남': P('Chungnam', '忠南', '忠南', ['chungnam', 'south chungcheong']),
+  '전북': P('Jeonbuk', '全北', '全北', ['jeonbuk', 'north jeolla']),
+  '경북': P('Gyeongbuk', '庆北', '慶北', ['gyeongbuk', 'north gyeongsang']),
+  '경남': P('Gyeongnam', '庆南', '慶南', ['gyeongnam', 'south gyeongsang']),
   '수원': P('Suwon', '水原', '水原', ['suwon']),
   '성남': P('Seongnam', '城南', '城南', ['seongnam']),
   '고양': P('Goyang', '高阳', '高陽', ['goyang']),
@@ -889,14 +902,14 @@ export function labelPlace(name) {
 }
 
 export function placeSearchText(store) {
-  const names = [store && store.city, store && store.district, store && store.area, store && store.type, store && store.category, store && store.nearby];
+  const names = [store && store.province, store && store.city, store && store.district, store && store.area, store && store.type, store && store.category, store && store.nearby];
   const bits = [];
   names.forEach(name => {
     const place = PLACES[name];
     if (!place) return;
     bits.push(place.en, place['zh-Hans'], place['zh-Hant'], ...(place.aliases || []));
   });
-  const fields = [store && store.nearby, store && store.placeLabel, store && store.addressShort, store && store.district, store && store.city, store && store.area];
+  const fields = [store && store.nearby, store && store.placeLabel, store && store.addressShort, store && store.district, store && store.city, store && store.province, store && store.area];
   if (store && store.showMaps) fields.push(store.realName, store.address);
   ['en', 'zh-Hans', 'zh-Hant'].forEach(locale => {
     fields.forEach(field => {

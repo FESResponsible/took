@@ -1,6 +1,6 @@
 import { SPACES } from './spaces.js?v=096c6c10072e';
 import { MAP_SPACES } from './map-spaces.js?v=6b08f818d019';
-import { placeSearchText } from './i18n.js?v=0e9836654ba5';
+import { placeSearchText } from './i18n.js?v=7a08fcd0c549';
 
 export const SHOW_REAL_NAMES = true;
 export const PRICING = {
@@ -46,6 +46,27 @@ const DISTRICT_RULES = {
     ['스카이로드', /스카이로드|대흥|중앙로역/]
   ]
 };
+export const METRO_CITIES = ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종'];
+export const PROVINCE_GROUPS = [
+  ['경기', ['수원', '성남', '고양', '용인', '안양', '안산', '평택', '파주', '의정부', '부천', '구리', '오산']],
+  ['강원', ['강릉', '춘천']],
+  ['충북', ['청주']],
+  ['충남', ['천안']],
+  ['전북', ['전주']],
+  ['경북', ['경주', '포항']],
+  ['경남', ['창원', '김해', '밀양']],
+  ['제주', ['제주']]
+];
+const CITY_PROVINCE = new Map(PROVINCE_GROUPS.flatMap(([province, cities]) => cities.map(city => [city, province])));
+
+export function provinceFor(city) {
+  return CITY_PROVINCE.get(city) || '';
+}
+
+export function citiesInProvince(province) {
+  const found = PROVINCE_GROUPS.find(([name]) => name === province);
+  return found ? found[1].slice() : [];
+}
 
 function cityForRegion(region) {
   return AREAS.includes(region) || region === '기타' ? '서울' : region;
@@ -215,6 +236,7 @@ function buildStores(spaces) {
       realName: space.realName,
       area: space.region,
       city: cityForRegion(space.region),
+      province: provinceFor(cityForRegion(space.region)),
       district: districtFor(space.region, space.realName),
       category: space.category,
       group: space.group || '',
@@ -255,7 +277,7 @@ function presentStore(store, showRealNames) {
   store.pinLat = showRealNames ? store.lat : roundCoord(store.lat);
   store.pinLng = showRealNames ? store.lng : roundCoord(store.lng);
   store.showMaps = showRealNames;
-  const parts = [store.city, store.district, store.area, store.nearby, store.addressShort, store.alias, store.type];
+  const parts = [store.province, store.city, store.district, store.area, store.nearby, store.addressShort, store.alias, store.type];
   if (showRealNames) parts.push(store.realName, store.address);
   store.searchText = parts.filter(Boolean).join(' ');
 }
@@ -287,12 +309,36 @@ export function districtsFor(city) {
     });
 }
 
+export function regionChoices() {
+  const counts = new Map();
+  STORES.forEach(store => counts.set(store.city, (counts.get(store.city) || 0) + 1));
+  const known = new Set([...METRO_CITIES, ...PROVINCE_GROUPS.flatMap(([, cities]) => cities)]);
+  const metros = METRO_CITIES.filter(city => counts.has(city)).map(name => ({ name, count: counts.get(name) }));
+  const provinces = PROVINCE_GROUPS.map(([name, cities]) => ({
+    name,
+    count: cities.reduce((sum, city) => sum + (counts.get(city) || 0), 0)
+  })).filter(item => item.count > 0);
+  const extras = [...counts.keys()].filter(city => !known.has(city)).map(name => ({ name, count: counts.get(name) }));
+  return [...metros, ...provinces, ...extras].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ko'));
+}
+
+export function citiesForProvince(province) {
+  const allowed = new Set(citiesInProvince(province));
+  const counts = new Map();
+  STORES.forEach(store => {
+    if (!allowed.has(store.city)) return;
+    counts.set(store.city, (counts.get(store.city) || 0) + 1);
+  });
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko')).map(([name]) => name);
+}
+
 export function resolveArea(area) {
-  if (!area || area === '전체') return { city: '', district: '' };
+  if (!area || area === '전체') return { province: '', city: '', district: '' };
+  if (PROVINCE_GROUPS.some(([name]) => name === area)) return { province: area, city: '', district: '' };
   const match = STORES.find(store => store.district === area);
-  if (match && !STORES.some(store => store.city === area)) return { city: match.city, district: area };
-  if (STORES.some(store => store.city === area)) return { city: area, district: '' };
-  return { city: '', district: '' };
+  if (match && !STORES.some(store => store.city === area)) return { province: provinceFor(match.city), city: match.city, district: area };
+  if (STORES.some(store => store.city === area)) return { province: provinceFor(area), city: area, district: '' };
+  return { province: '', city: '', district: '' };
 }
 
 export function resolveCopyMode(queryValue, storedValue, options = {}) {
@@ -339,11 +385,29 @@ export function billedHours(start, end) {
   return Math.ceil(minutes / 60);
 }
 
+export function stayStamp(date, time) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '') || !isTime(time)) return null;
+  const stamp = new Date(date + 'T' + time + ':00');
+  if (Number.isNaN(stamp.getTime()) || localDate(stamp) !== date) return null;
+  const [hour, minute] = time.split(':').map(Number);
+  if (stamp.getHours() !== hour || stamp.getMinutes() !== minute) return null;
+  return stamp.getTime();
+}
+
+export function billedDays(startDate, startTime, endDate, endTime) {
+  const start = stayStamp(startDate, startTime);
+  const end = stayStamp(endDate, endTime);
+  if (start == null || end == null) throw new Error('시간을 확인해 주세요.');
+  const span = end - start;
+  if (span <= 0) throw new Error('찾는 시간을 시작 시간보다 늦게 선택해 주세요.');
+  return Math.ceil(span / (PRICING.dayHours * 60 * 60 * 1000));
+}
+
 export function filterStores({ query = '', area = '전체', category = '전체', sort = 'recommended', origin = null, nearOnly = false, hours24 = false, cold = false } = {}) {
   const tokens = query.trim().toLowerCase().replace(/역/g, '').split(/\s+/).filter(Boolean);
   let matches = STORES.filter(store => {
     const searchable = (store.searchText + ' ' + store.name + ' ' + store.type + ' ' + placeSearchText(store)).toLowerCase().replace(/역/g, '');
-    const areaOk = area === '전체' || store.area === area || store.city === area || store.district === area;
+    const areaOk = area === '전체' || store.area === area || store.city === area || store.district === area || store.province === area;
     const categoryOk = category === '전체' || store.type === category;
     return areaOk && categoryOk && tokens.every(token => searchable.includes(token)) && (!hours24 || store.hours24) && (!cold || store.cold);
   }).map(store => origin ? { ...store, distanceKm: distanceKm(origin, store) } : store);
@@ -366,8 +430,11 @@ export function billableUnits(totalCount, shoppingBagCount = 0) {
   };
 }
 
-export function feePerUnit({ plan, hours }) {
-  if (plan === 'day') return { amount: PRICING.dayRate, hours: 0, billedHours: 0, minimumApplied: false, capped: false };
+export function feePerUnit({ plan, hours, days = 1 }) {
+  if (plan === 'day') {
+    const billedDays = Number.isInteger(days) && days >= 1 ? days : 1;
+    return { amount: PRICING.dayRate * billedDays, hours: 0, billedHours: 0, billedDays, minimumApplied: false, capped: false };
+  }
   if (plan !== 'hour') throw new Error('요금제를 선택해 주세요.');
   if (!Number.isInteger(hours) || hours < 1) throw new Error('시간을 확인해 주세요.');
   const minimumApplied = hours < PRICING.minHours;
@@ -380,16 +447,19 @@ export function feePerUnit({ plan, hours }) {
     amount,
     hours,
     billedHours,
+    billedDays: 0,
     minimumApplied,
     capped: fullDays > 0 || restRaw >= PRICING.dayRate
   };
 }
 
-export function quote({ plan, count, shoppingBagCount = 0, start, end, hours, plus = false } = {}) {
+export function quote({ plan, count, shoppingBagCount = 0, date, startDate, endDate, start, end, hours, plus = false } = {}) {
   const units = billableUnits(count, shoppingBagCount);
-  const priced = plan === 'hour'
-    ? feePerUnit({ plan, hours: Number.isInteger(hours) ? hours : billedHours(start, end) })
-    : feePerUnit({ plan, hours: 0 });
+  const fromDate = startDate || date || '';
+  let priced;
+  if (plan === 'hour') priced = feePerUnit({ plan, hours: Number.isInteger(hours) ? hours : billedHours(start, end) });
+  else if (plan === 'day' && fromDate && endDate) priced = feePerUnit({ plan, days: billedDays(fromDate, start, endDate, end) });
+  else priced = feePerUnit({ plan, hours: 0, days: 1 });
   const storage = priced.amount * units.units;
   const plusOn = Boolean(plus);
   const plusFee = plusOn ? PRICING.plusRate * units.units : 0;
@@ -397,6 +467,7 @@ export function quote({ plan, count, shoppingBagCount = 0, start, end, hours, pl
     plan,
     hours: priced.hours,
     billedHours: priced.billedHours,
+    billedDays: priced.billedDays,
     totalCount: units.totalCount,
     shoppingBagCount: units.shoppingBagCount,
     bagUnits: units.bagUnits,
@@ -420,7 +491,7 @@ function withinHours(store, time) {
   return time >= store.open && time < store.close;
 }
 
-export function validateBooking({ date, start, end, count, plan, note }, store, today = localDate()) {
+export function validateBooking({ date, start, end, endDate, count, plan, note }, store, today = localDate()) {
   const errors = [];
   const parsed = new Date((date || '') + 'T00:00:00');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '') || Number.isNaN(parsed.getTime()) || localDate(parsed) !== date || date < today) errors.push('오늘 이후의 보관 날짜를 선택해 주세요.');
@@ -430,11 +501,15 @@ export function validateBooking({ date, start, end, count, plan, note }, store, 
     const outside = store.hoursFlexible ? (!isTime(end) || end <= start) : (!isTime(end) || end > store.close || end <= start);
     if (outside) errors.push('운영시간 안에서 찾는 시간을 선택해 주세요.');
   }
+  if (plan === 'day' && endDate) {
+    try { billedDays(date, start, endDate, end); }
+    catch (error) { errors.push(error.message); }
+  }
   if (!Number.isInteger(count) || count < 1 || count > 10) errors.push('짐은 1개부터 10개까지 선택할 수 있어요.');
   const luggage = typeof note === 'string' ? note.trim() : '';
   if (luggage.length < 1 || luggage.length > 120) errors.push('짐 종류를 1자에서 120자 사이로 적어 주세요.');
   if (!errors.length) {
-    try { calculateTotal({ plan, count, start, end }); }
+    try { calculateTotal({ plan, count, date, start, endDate: plan === 'day' ? endDate : '', end }); }
     catch (error) { errors.push(error.message); }
   }
   return errors;
