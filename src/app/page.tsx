@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { BookingCard } from '@/components/BookingCard';
 import { Icon, type IconName } from '@/components/icons';
 import { isPickupOverdue } from '@/domain/transitions';
@@ -18,32 +19,51 @@ const QUICK: ReadonlyArray<{ href: string; label: string; icon: IconName; tone: 
   { href: '/scan', label: 'QR 확인', icon: 'qr', tone: 'mint' },
 ];
 
+type FoldId = 'storage' | 'arriving' | 'pending' | 'noshow';
+
 export default function TodayPage() {
   const { state, now } = usePartner();
   const view = selectToday(state.bookings, now, state.policy);
+  const [open, setOpen] = useState<FoldId | null>(null);
   const msUntil = (iso: string) => Date.parse(iso) - now.getTime();
 
-  const cards: { booking: Booking; hint: string; hintTone: 'warn' | 'muted' }[] = [
-    ...view.arrivingToday.map((booking) => ({
-      booking,
-      hint: formatRemaining(msUntil(booking.dropOffAt)).replace('남음', '뒤 도착'),
-      hintTone: 'muted' as const,
-    })),
-    ...view.inStorage.map((booking) => ({
-      booking,
-      hint: isPickupOverdue(booking, now) ? '찾으러 올 시간이 지났어요' : `${formatTime(booking.pickUpAt)}에 찾으러 와요`,
-      hintTone: isPickupOverdue(booking, now) ? ('warn' as const) : ('muted' as const),
-    })),
-    ...view.pending.map((booking) => ({
-      booking,
-      hint: `${booking.approvalReasons.map((reason) => REASON_LABEL[reason]).join(', ')} · ${formatRemaining(msUntil(booking.approvalDeadline ?? booking.createdAt))}`,
-      hintTone: 'warn' as const,
-    })),
-    ...view.noShowCandidates.map((booking) => ({
-      booking,
-      hint: `${formatTime(booking.dropOffAt)} 예약 · 노쇼로 처리할 수 있어요`,
-      hintTone: 'warn' as const,
-    })),
+  const sections: { id: FoldId; label: string; items: { booking: Booking; hint: string; hintTone: 'warn' | 'muted' }[] }[] = [
+    {
+      id: 'storage',
+      label: '보관 중',
+      items: view.inStorage.map((booking) => ({
+        booking,
+        hint: isPickupOverdue(booking, now) ? '찾으러 올 시간이 지났어요' : `${formatTime(booking.pickUpAt)}에 찾으러 와요`,
+        hintTone: isPickupOverdue(booking, now) ? ('warn' as const) : ('muted' as const),
+      })),
+    },
+    {
+      id: 'arriving',
+      label: '오늘 맡기러 와요',
+      items: view.arrivingToday.map((booking) => ({
+        booking,
+        hint: formatRemaining(msUntil(booking.dropOffAt)).replace('남음', '뒤 도착'),
+        hintTone: 'muted' as const,
+      })),
+    },
+    {
+      id: 'pending',
+      label: '확인 필요',
+      items: view.pending.map((booking) => ({
+        booking,
+        hint: `${booking.approvalReasons.map((reason) => REASON_LABEL[reason]).join(', ')} · ${formatRemaining(msUntil(booking.approvalDeadline ?? booking.createdAt))}`,
+        hintTone: 'warn' as const,
+      })),
+    },
+    {
+      id: 'noshow',
+      label: '노쇼',
+      items: view.noShowCandidates.map((booking) => ({
+        booking,
+        hint: `${formatTime(booking.dropOffAt)} 예약 · 노쇼로 처리할 수 있어요`,
+        hintTone: 'warn' as const,
+      })),
+    },
   ];
 
   return (
@@ -61,21 +81,33 @@ export default function TodayPage() {
         ))}
       </nav>
 
-      <section className="section">
-        <h2 className="section-title">
-          당일 예약 현황
-          <span className="section-count">{cards.length}</span>
-        </h2>
-        {cards.length === 0 ? (
-          <p className="empty">오늘 예약이 없어요.</p>
-        ) : (
-          <div className="stack">
-            {cards.map((item) => (
-              <BookingCard key={item.booking.id} booking={item.booking} now={now} hint={item.hint} hintTone={item.hintTone} />
-            ))}
-          </div>
-        )}
-      </section>
+      <div className="fold-list">
+        {sections.map((section) => {
+          const expanded = open === section.id;
+          return (
+            <section key={section.id} className={`fold${expanded ? ' is-open' : ''}`}>
+              <button type="button" className="fold-row" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : section.id)}>
+                <span className="fold-label">{section.label}</span>
+                <span className="section-count">{section.items.length}</span>
+                <span className="fold-chevron" aria-hidden="true">
+                  <Icon name="chevron" size={18} />
+                </span>
+              </button>
+              {expanded ? (
+                section.items.length === 0 ? (
+                  <p className="empty">예약이 없어요.</p>
+                ) : (
+                  <div className="stack">
+                    {section.items.map((item) => (
+                      <BookingCard key={item.booking.id} booking={item.booking} now={now} hint={item.hint} hintTone={item.hintTone} />
+                    ))}
+                  </div>
+                )
+              ) : null}
+            </section>
+          );
+        })}
+      </div>
     </>
   );
 }
