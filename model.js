@@ -1,6 +1,6 @@
 import { SPACES } from './spaces.js?v=096c6c10072e';
 import { MAP_SPACES } from './map-spaces.js?v=6b08f818d019';
-import { placeSearchText } from './i18n.js?v=74831a0423aa';
+import { placeSearchText } from './i18n.js?v=a2bc9c53aa43';
 
 export const SHOW_REAL_NAMES = true;
 export const PRICING = {

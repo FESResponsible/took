@@ -199,9 +199,6 @@ const MESSAGES = {
     L('발걸음은 가볍게', 'Step lighter', '脚步更轻', '腳步更輕')
   ),
   'how.nearSmall': L('내 주변 보관 공간', 'Storage near me', '我附近的寄存点', '我附近的寄存點'),
-  'price.kicker': L('SAME RATE', 'SAME RATE', 'SAME RATE', 'SAME RATE'),
-  'price.title': L('요금은 모든 공간이 같아요', 'Every spot uses the same rate', '所有地点价格相同', '所有地點價格相同'),
-  'price.same': L('짐 종류와 상관없이 같은 요금이에요.', 'The rate does not change with bag type.', '不因行李种类改变价格。', '不因行李種類改變價格。'),
   'price.perHour': L('시간당', 'Per hour', '每小时', '每小時'),
   'price.min': L('최소 보관', 'Minimum', '最短寄存', '最短寄存'),
   'price.perDay': L('개당 하루 최대', 'Daily cap per bag', '每件每天上限', '每件每天上限'),
@@ -210,18 +207,15 @@ const MESSAGES = {
   'price.dayValue': L('5,000원', '₩5,000', '5,000韩元', '5,000韓元'),
   'price.minValue': L('2시간', '2 hours', '2小时', '2小時'),
   'price.bagValue': L('3개까지', 'Up to 3', '最多3件', '最多3件'),
-  'guide.title': L('여행을 가볍게<br>tooK 이용 안내', 'Travel lighter<br>Using tooK', '让旅行更轻<br>tooK 使用说明', '讓旅行更輕<br>tooK 使用說明'),
+  'guide.kicker': L('여행을 가볍게', 'Travel lighter', '让旅行更轻', '讓旅行更輕'),
+  'guide.title': L('tooK 이용 안내', 'Using tooK', 'tooK 使用说明', 'tooK 使用說明'),
   'guide.dayName': L('하루권', 'Day pass', '一日券', '一日券'),
   'guide.dayValue': L('개당 하루 5,000원', '₩5,000 per item per day', '每件每天 5,000韩元', '每件每天 5,000韓元'),
   'guide.hourName': L('시간권', 'Hourly', '小时券', '小時券'),
   'guide.hourValue': L('시간당 1,000원. 2시간부터. 하루 최대 5,000원', '₩1,000 per hour. From 2 hours. Up to ₩5,000 a day.', '每小时 1,000韩元。从 2 小时起。每天最多 5,000韩元。', '每小時 1,000韓元。從 2 小時起。每天最多 5,000韓元。'),
-  'guide.sameName': L('짐 종류', 'Bag type', '行李种类', '行李種類'),
   'guide.sameValue': L('짐 종류와 상관없이 같은 요금', 'The same rate for every bag type', '不论种类，费用相同', '不論種類，費用相同'),
-  'guide.bagName': L('쇼핑백', 'Shopping bags', '购物袋', '購物袋'),
-  'guide.bagValue': L('3개까지 1개로 계산', 'Up to 3 count as 1', '最多 3 件按 1 件计算', '最多 3 件按 1 件計算'),
-  'guide.plusName': L('안심 플러스', 'Peace Plus', '安心加值', '安心加值'),
-  'guide.plusValue': L('개당 +1,000원', '+₩1,000 per item', '每件 +1,000韩元', '每件 +1,000韓元'),
-  'guide.plusNote': L('짐 분실이나 파손에 대비해 선택할 수 있어요. 선택하면 개당 1,000원이 추가됩니다.', 'Optional if a bag is lost or damaged. Choosing it adds ₩1,000 per item.', '可选择，用来应对行李丢失或损坏。选择后每件加 1,000韩元。', '可選擇，用來應對行李遺失或損壞。選擇後每件加 1,000韓元。'),
+  'guide.bagLine': L('쇼핑백 3개까지 1개로 계산', 'Up to 3 shopping bags count as 1', '购物袋最多 3 件按 1 件计算', '購物袋最多 3 件按 1 件計算'),
+  'guide.plusLine': L('안심 플러스: 개당 +1,000원', 'Peace Plus: +₩1,000 per item', '安心加值: 每件 +1,000韩元', '安心加值: 每件 +1,000韓元'),
   'care.alt': C(
     L('여행 동선에서 볼 수 있는 서울 도심 풍경', 'A Seoul city view along a travel route', '旅行路线上能看到的首尔市景', '旅行路線上能看到的首爾市景'),
     L('일정 근처에서 볼 수 있는 서울 도심 풍경', 'A Seoul city view near everyday plans', '日常安排附近能看到的首尔市景', '日常安排附近能看到的首爾市景')
@@ -352,7 +346,6 @@ const MESSAGES = {
   'detail.mapNote': L('고른 장소만 지도에 표시해요', 'Only the chosen spot is shown on the map', '地图只显示选中的地点', '地圖只顯示選中的地點'),
   'booking.title': L('잠시 맡길 준비를 해볼까요?', 'Ready to plan the drop-off?', '要准备寄存了吗？', '要準備寄存了嗎？'),
   'booking.subtitle': L('날짜와 시작 시간, 짐 종류를 정하면 테스트 결제로 이어져요. 실제 청구와 예약은 없어요.', 'Choose the date, start time, and bag type, then continue to the test payment. Nothing is charged and no reservation is made.', '选定日期、开始时间和行李种类后进入测试付款。不会实际扣款，也不会预约。', '選定日期、開始時間和行李種類後進入測試付款。不會實際扣款，也不會預約。'),
-  'booking.testNotice': L('다음 화면은 테스트 결제예요. 실제 청구와 예약은 없고, 카드 정보는 받지 않아요.', 'The next screen is a test payment. Nothing is charged, no reservation is made, and card details are not collected.', '下一屏是测试付款。不会实际扣款，不会预约，也不收集卡信息。', '下一屏是測試付款。不會實際扣款，不會預約，也不收集卡資訊。'),
   'booking.date': L('보관 시작', 'Storage start', '寄存开始', '寄存開始'),
   'booking.start': L('시작 시간', 'Start time', '开始时间', '開始時間'),
   'booking.endDate': L('보관 종료', 'Storage end', '寄存结束', '寄存結束'),
@@ -378,7 +371,6 @@ const MESSAGES = {
   'booking.storage': L('보관료', 'Storage', '寄存费', '寄存費'),
   'booking.plusFee': L('안심 플러스', 'Peace Plus', '安心加值', '安心加值'),
   'booking.total': L('체험 안내 금액', 'Tryout quote', '体验提示金额', '體驗提示金額'),
-  'booking.consent': L('이 일정과 안내 금액으로 테스트 결제를 진행합니다. 실제 청구와 예약은 없습니다.', 'I will continue to the test payment with this schedule and quote. Nothing will be charged and no reservation will be made.', '我将按此时间和提示金额进入测试付款。不会实际扣款，也不会预约。', '我將按此時間和提示金額進入測試付款。不會實際扣款，也不會預約。'),
   'booking.submit': L('지금 결제하기', 'Pay now', '立即付款', '立即付款'),
   'pay.title': L('테스트 결제', 'Test payment', '测试付款', '測試付款'),
   'pay.notice': L('테스트 결제예요. 실제 청구와 예약은 없고, 카드 정보는 받지 않아요.', 'This is a test payment. Nothing is charged, no reservation is made, and card details are not collected.', '这是测试付款。不会实际扣款，不会预约，也不收集卡信息。', '這是測試付款。不會實際扣款，不會預約，也不收集卡資訊。'),
@@ -478,7 +470,7 @@ const MESSAGES = {
   ),
   'copy.hero-description': C(
     L('여행 동선에 짐을 맡길 곳이 없다고 하더라도,<br>짐 때문에 여행이 번거로워지지 않도록', 'Even if there is nowhere on your route to leave your bags,<br>keep the trip from becoming a hassle because of them.', '就算旅行路线上没有可以寄存行李的地方，<br>也不让行李把旅行变得麻烦。', '就算旅行路線上沒有可以寄存行李的地方，<br>也不讓行李把旅行變得麻煩。'),
-    L('쇼핑하다 늘어난 쇼핑백도, 약속 전에 들기 힘든 가방도, 다른 지역 콘서트나 출장 짐도.<br>일정 가까운 곳에 잠시 맡기고 발걸음을 가볍게 이어가세요.', 'Shopping bags, a bag that is awkward before the next plan, or luggage from a concert or work trip in another city.<br>Leave it near the plan and keep your step light.', '购物袋、约定前不便拿的包，或其他城市演唱会和出差的行李。<br>先寄存在行程附近，让脚步更轻。', '購物袋、約定前不便拿的包，或其他城市演唱會和出差的行李。<br>先寄存在行程附近，讓腳步更輕。')
+    L('쇼핑하다 늘어난 쇼핑백도, 약속 전에 들기 힘든 가방도, 다른 지역 콘서트나 출장 짐도. 일정 가까운 곳에 잠시 맡기고 발걸음을 가볍게 이어가세요.', 'Shopping bags, a bag that is awkward before the next plan, or luggage from a concert or work trip in another city. Leave it near the plan and keep your step light.', '购物袋、约定前不便拿的包，或其他城市演唱会和出差的行李。先寄存在行程附近，让脚步更轻。', '購物袋、約定前不便拿的包，或其他城市演唱會和出差的行李。先寄存在行程附近，讓腳步更輕。')
   ),
   'copy.hero-cta': C(
     L('여행지 근처 보관 장소 찾기', 'Find luggage storage nearby', '查找旅途附近的寄存点', '尋找旅途附近的寄存點'),
