@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea } from './model.js?v=d5115af045a1';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=43036d766412';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=c6d877e6eefe';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea } from './model.js?v=e5fadadbe0a4';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=6f331f067f83';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=0e9836654ba5';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -26,6 +26,7 @@ const state = {
   origin: null,
   nearOnly: false,
   focusedId: '',
+  listLimit: 20,
   locating: false,
   favourites: new Set(Array.isArray(favouriteData) ? favouriteData.filter(id => STORES.some(store => store.id === id)) : []),
   selectedStore: null,
@@ -128,9 +129,18 @@ function renderLocationStatus() {
   element.innerHTML = '<span>' + (state.nearOnly ? t('location.near', { km: NEAR_KM }) : t('location.all')) + '</span><button type="button" id="toggle-near">' + (state.nearOnly ? t('location.showAll') : t('location.onlyNear')) + '</button><button type="button" id="clear-location">' + t('location.clear') + '</button>';
 }
 
+const STORE_PAGE = 20;
+let storeListKey = '';
+
 function renderStores() {
   renderDistricts();
+  const nextKey = JSON.stringify(currentCriteria());
+  if (nextKey !== storeListKey) {
+    storeListKey = nextKey;
+    state.listLimit = STORE_PAGE;
+  }
   const stores = filterStores(currentCriteria());
+  const visible = stores.slice(0, state.listLimit);
   if (state.view === 'map' && stores.length && !stores.some(store => store.id === state.focusedId)) state.focusedId = stores[0].id;
   const focused = stores.find(store => store.id === state.focusedId) || null;
   const countHtml = '<strong>' + escapeHtml(formatNumber(stores.length)) + '</strong>';
@@ -140,17 +150,22 @@ function renderStores() {
       ? t('results.area', { area: '<strong>' + escapeHtml(labelPlace(state.area)) + '</strong>', count: countHtml })
       : (state.origin && state.nearOnly ? t('results.near', { count: countHtml }) : t('results.all', { count: countHtml })));
   $('#results-summary').innerHTML = lead;
-  $('#store-grid').innerHTML = stores.map(store => {
+  $('#store-grid').innerHTML = visible.map(store => {
     const saved = state.favourites.has(store.id);
     const name = displayName(store);
     const distance = state.origin ? '<span class="store-distance">' + escapeHtml(t('card.distance', { km: store.distanceKm.toFixed(1) })) + '</span>' : '';
     const placeArea = labelPlace(store.district || store.area);
-    return '<article class="store-card"><button class="store-image-button" data-store="' + store.id + '" aria-label="' + escapeHtml(t('card.open', { name })) + '"><img src="' + store.image + '" alt="' + escapeHtml(t('card.photoAlt', { type: labelPlace(store.type) })) + '" loading="lazy" width="900" height="675" style="object-position:' + store.imagePosition + '"><span class="store-tag">' + escapeHtml(labelPlace(store.tag)) + '</span></button><button class="save-button" data-favourite="' + store.id + '" aria-label="' + escapeHtml(saved ? t('card.unsave', { name }) : t('card.save', { name })) + '" aria-pressed="' + saved + '">' + icon('heart') + '</button><div class="store-body"><div class="store-category"><span>' + escapeHtml(placeArea) + '</span><span>' + escapeHtml(labelPlace(store.type)) + '</span></div><button class="store-title" data-store="' + store.id + '">' + escapeHtml(name) + '</button><div class="store-meta"><div class="store-access">' + icon('walk') + '<span>' + escapeHtml(formatAccess(store.placeLabel)) + '</span></div><div class="store-hours">' + icon('clock') + '<span>' + escapeHtml(hoursText(store)) + '</span></div>' + optionMarks(store) + '</div><div class="store-price-row">' + (distance ? '<div class="store-price-stack">' + distance + '</div>' : '') + '<button class="store-open-link" data-store="' + store.id + '">' + escapeHtml(t('card.reserve')) + icon('arrow') + '</button></div></div></article>';
+    return '<article class="store-card"><button class="store-image-button" data-store="' + store.id + '" aria-label="' + escapeHtml(t('card.open', { name })) + '"><img src="' + store.image + '" alt="' + escapeHtml(t('card.photoAlt', { type: labelPlace(store.type) })) + '" loading="lazy" width="900" height="675" style="object-position:' + store.imagePosition + '"><span class="store-category"><span>' + escapeHtml(placeArea) + '</span><span>' + escapeHtml(labelPlace(store.type)) + '</span></span></button><button class="save-button" data-favourite="' + store.id + '" aria-label="' + escapeHtml(saved ? t('card.unsave', { name }) : t('card.save', { name })) + '" aria-pressed="' + saved + '">' + icon('heart') + '</button><div class="store-body"><button class="store-title" data-store="' + store.id + '">' + escapeHtml(name) + '</button><div class="store-meta"><div class="store-access">' + icon('walk') + '<span>' + escapeHtml(formatAccess(store.placeLabel)) + '</span></div><div class="store-hours">' + icon('clock') + '<span>' + escapeHtml(hoursText(store)) + '</span></div>' + optionMarks(store) + '</div><div class="store-price-row">' + (distance ? '<div class="store-price-stack">' + distance + '</div>' : '') + '<button class="store-open-link" data-store="' + store.id + '">' + escapeHtml(t('card.reserve')) + icon('arrow') + '</button></div></div></article>';
   }).join('');
   $('#store-grid').hidden = state.view !== 'cards' || !stores.length;
   $('#place-map').hidden = state.view !== 'map' || !stores.length;
   $('#empty-state').hidden = stores.length > 0;
-  $('#map-list').innerHTML = stores.map(store => '<article class="map-list-card' + (store.id === state.focusedId ? ' active' : '') + '"><button type="button" class="map-focus" data-focus="' + store.id + '"><img src="' + store.image + '" alt="" loading="lazy"><span><strong>' + escapeHtml(displayName(store)) + '</strong><small><span>' + escapeHtml(formatAccess(store.placeLabel)) + '</span><span>' + escapeHtml(hoursText(store)) + '</span></small></span></button><div class="map-card-actions"><button type="button" data-store="' + store.id + '">' + escapeHtml(t('card.detail')) + '</button></div></article>').join('');
+  const more = $('#stores-more');
+  if (more) {
+    more.hidden = visible.length >= stores.length;
+    more.textContent = t('results.more');
+  }
+  $('#map-list').innerHTML = visible.map(store => '<article class="map-list-card' + (store.id === state.focusedId ? ' active' : '') + '"><button type="button" class="map-focus" data-focus="' + store.id + '"><img src="' + store.image + '" alt="" loading="lazy"><span><strong>' + escapeHtml(displayName(store)) + '</strong><small><span>' + escapeHtml(formatAccess(store.placeLabel)) + '</span><span>' + escapeHtml(hoursText(store)) + '</span></small></span></button><div class="map-card-actions"><button type="button" data-store="' + store.id + '">' + escapeHtml(t('card.detail')) + '</button></div></article>').join('');
   if (state.view === 'map' && focused) {
     const src = focused.pinLat + ',' + focused.pinLng + ':' + document.documentElement.lang;
     const frame = $('#map-frame');
@@ -822,6 +837,10 @@ $$('[data-option]').forEach(input => input.addEventListener('change', () => {
   renderStores();
 }));
 $('#reset-search').addEventListener('click', () => { state.hours24 = false; state.cold = false; state.area = '전체'; state.category = '전체'; state.origin = null; state.nearOnly = false; state.sort = 'recommended'; $$('[data-option]').forEach(input => { input.checked = false; }); runSearch(''); });
+$('#stores-more').addEventListener('click', () => {
+  state.listLimit += STORE_PAGE;
+  renderStores();
+});
 $('#cards-view').addEventListener('click', () => { state.view = 'cards'; renderStores(); });
 $('#map-view').addEventListener('click', () => { state.view = 'map'; renderStores(); });
 $('#use-location').addEventListener('click', useCurrentLocation);

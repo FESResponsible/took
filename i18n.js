@@ -171,6 +171,7 @@ const MESSAGES = {
   'results.area': L('{area} 보관 공간 {count}곳', '{area} {count} storage spots', '{area} 寄存点 {count}处', '{area} 寄存點 {count}處'),
   'results.near': L('현재 위치 주변 보관 공간 {count}곳', '{count} storage spots near you', '您附近的寄存点 {count}处', '您附近的寄存點 {count}處'),
   'results.all': L('전체 보관 공간 {count}곳', '{count} storage spots in total', '全部寄存点 {count}处', '全部寄存點 {count}處'),
+  'results.more': L('더보기', 'Show more', '查看更多', '查看更多'),
   'empty.title': L('이 조건에 맞는 공간이 없어요.', 'No spots match these filters.', '没有符合条件的地点。', '沒有符合條件的地點。'),
   'empty.body': L('지역이나 보관 옵션을 바꾸거나, 전체 목록을 봐 주세요.', 'Change the area or storage option, or view the full list.', '请更换地区或寄存条件，或查看全部。', '請更換地區或寄存條件，或查看全部。'),
   'empty.reset': L('전체 공간 보기', 'View all spots', '查看全部地点', '查看全部地點'),
