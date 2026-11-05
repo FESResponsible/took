@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=a0927f5b7bd4';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=b1c4817dcc33';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=a2bc9c53aa43';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=d2db0d034a59';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=8150593bb381';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=238c2a060165';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -651,7 +651,7 @@ function showPay(booking) {
   dialog.classList.remove('survey-open');
   dialog.classList.add('pay-open');
   const name = displayName(state.selectedStore);
-  $('#store-dialog-content').innerHTML = '<div class="pay-sheet"><p class="eyebrow">TEST PAYMENT</p><h2 id="store-title">' + escapeHtml(t('pay.title')) + '</h2><p class="pay-notice">' + escapeHtml(t('pay.notice')) + '</p><div class="reservation-ticket"><strong>' + escapeHtml(name) + '</strong>' + choiceSummary(booking) + '</div><div class="mvp-actions"><button class="button button-primary" type="button" id="pay-run">' + escapeHtml(t('pay.button')) + '</button><button class="button button-outline" type="button" id="pay-back">' + escapeHtml(t('pay.back')) + '</button></div></div>';
+  $('#store-dialog-content').innerHTML = '<div class="pay-sheet"><h2 id="store-title">' + escapeHtml(t('pay.title')) + '</h2><div class="reservation-ticket"><strong>' + escapeHtml(name) + '</strong>' + choiceSummary(booking) + '</div><div class="mvp-actions"><button class="button button-primary" type="button" id="pay-run">' + escapeHtml(t('pay.button')) + '</button><button class="button button-outline" type="button" id="pay-back">' + escapeHtml(t('pay.back')) + '</button></div><div class="pay-error" id="pay-error" hidden role="alertdialog" aria-labelledby="pay-error-text"><p id="pay-error-text">' + escapeHtml(t('pay.error')) + '</p><button class="button button-primary" type="button" id="pay-error-close">' + escapeHtml(t('pay.close')) + '</button></div></div>';
   dialog.scrollTop = 0;
 }
 
@@ -665,7 +665,7 @@ function showPayDone(booking, saved) {
   dialog.classList.remove('survey-open');
   const name = displayName(state.selectedStore);
   const note = saved ? t('pay.saved') : t('pay.failSave');
-  $('#store-dialog-content').innerHTML = '<div class="pay-sheet"><p class="eyebrow">TEST PAYMENT</p><h2 id="store-title">' + escapeHtml(t('pay.ended')) + '</h2><p class="pay-note">' + escapeHtml(note) + '</p><div class="reservation-ticket"><strong>' + escapeHtml(name) + '</strong>' + choiceSummary(booking) + '</div><div class="mvp-actions"><button class="button button-primary" type="button" id="pay-history">' + escapeHtml(t('pay.history')) + '</button><button class="button button-outline" type="button" id="pay-feedback">' + escapeHtml(t('pay.feedback')) + '</button><button class="button button-outline" type="button" id="pay-close">' + escapeHtml(t('pay.close')) + '</button></div></div>';
+  $('#store-dialog-content').innerHTML = '<div class="pay-sheet"><h2 id="store-title">' + escapeHtml(t('pay.ended')) + '</h2><p class="pay-note">' + escapeHtml(note) + '</p><div class="reservation-ticket"><strong>' + escapeHtml(name) + '</strong>' + choiceSummary(booking) + '</div><div class="mvp-actions"><button class="button button-primary" type="button" id="pay-history">' + escapeHtml(t('pay.history')) + '</button><button class="button button-outline" type="button" id="pay-feedback">' + escapeHtml(t('pay.feedback')) + '</button><button class="button button-outline" type="button" id="pay-close">' + escapeHtml(t('pay.close')) + '</button></div></div>';
   dialog.scrollTop = 0;
 }
 
@@ -1008,9 +1008,15 @@ $('#store-dialog-content').addEventListener('click', event => {
   if (event.target.closest('#mvp-later') || event.target.closest('#pay-close')) $('#store-dialog').close();
   if (event.target.closest('#pay-back')) backToBooking();
   if (event.target.closest('#pay-run')) {
-    const saved = saveTrial(state.payBooking);
-    track('test_payment_end', { store_id: state.selectedStore && state.selectedStore.id, saved: Boolean(saved) });
-    showPayDone(state.payBooking, saved);
+    const popup = $('#pay-error');
+    if (!popup || !popup.hidden) return;
+    popup.hidden = false;
+    $('#pay-error-close')?.focus();
+  }
+  if (event.target.closest('#pay-error-close')) {
+    const popup = $('#pay-error');
+    if (popup) popup.hidden = true;
+    $('#pay-run')?.focus();
   }
   if (event.target.closest('#pay-history')) {
     $('#store-dialog').close();
