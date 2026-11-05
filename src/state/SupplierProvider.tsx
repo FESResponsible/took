@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from 'react';
-import { matchAccount, storeMatchesAccount } from '@/data/accounts';
+import { isDemoStore, storeExists } from '@/data/accounts';
 import { createSeed } from '@/data/seed';
 import type { Note, Store, SupplierState } from '@/domain/types';
 
@@ -28,13 +28,13 @@ function readState(): SupplierState | null {
 }
 
 interface SupplierContextValue {
-  /** 로그인한 매장만 담는다. 로그인 전에는 비어 있다. */
+  /** 고른 매장만 담는다. 매장을 고르기 전에는 비어 있다. */
   readonly state: SupplierState;
   readonly now: Date;
   readonly storeId: string | null;
   readonly addNote: (inquiryId: string, body: string) => void;
-  readonly login: (id: string, password: string) => boolean;
-  readonly logout: () => void;
+  readonly selectStore: (storeId: string) => boolean;
+  readonly clearStore: () => void;
 }
 
 function readSession(stores: readonly Store[]): string | null {
@@ -42,7 +42,7 @@ function readSession(stores: readonly Store[]): string | null {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { storeId?: string };
-    if (!parsed.storeId || !storeMatchesAccount(stores, parsed.storeId)) return null;
+    if (!parsed.storeId || !isDemoStore(parsed.storeId) || !storeExists(stores, parsed.storeId)) return null;
     return parsed.storeId;
   } catch {
     return null;
@@ -94,14 +94,13 @@ export function SupplierProvider({ children }: { children: ReactNode }) {
           note: { id: `note-${Date.now()}`, inquiryId, body: trimmed, createdAt: new Date().toISOString() },
         });
       },
-      login: (id, password) => {
-        const account = matchAccount(id, password);
-        if (!account || !storeMatchesAccount(state.stores, account.storeId)) return false;
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ storeId: account.storeId }));
-        setStoreId(account.storeId);
+      selectStore: (nextStoreId) => {
+        if (!isDemoStore(nextStoreId) || !storeExists(state.stores, nextStoreId)) return false;
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ storeId: nextStoreId }));
+        setStoreId(nextStoreId);
         return true;
       },
-      logout: () => {
+      clearStore: () => {
         sessionStorage.removeItem(SESSION_KEY);
         setStoreId(null);
       },

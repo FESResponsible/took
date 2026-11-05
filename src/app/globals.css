@@ -7,7 +7,7 @@
 }
 
 :root {
-  --bg: #F1FBF8;
+  --bg: #FFFFFF;
   --card: #FFFFFF;
   --ink: #213A3C;
   --muted: #6E7C7E;
@@ -149,7 +149,7 @@ h1, h2, p { margin: 0; }
 .inquiry-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
 .inquiry-card > p { margin-top: 8px; color: var(--ink); }
 .note-list { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-.note-list li { padding: 10px 12px; border-radius: 12px; background: var(--bg); }
+.note-list li { padding: 10px 12px; border-radius: 12px; background: #F7FBFA; }
 .note-list span { font-size: 12px; color: var(--muted); font-weight: 600; }
 .note-list p { margin-top: 4px; }
 .note-form { display: grid; gap: 8px; padding: 16px 18px 18px; }
@@ -179,11 +179,17 @@ h1, h2, p { margin: 0; }
 .login-card { width: min(560px, 100%); padding: 28px; border-radius: 20px; background: var(--card); box-shadow: var(--shadow); }
 .login-card h1 { margin-top: 14px; font-size: 28px; letter-spacing: -0.7px; }
 .login-card > p { margin-top: 8px; color: var(--muted); }
-.login-form { display: grid; gap: 8px; margin-top: 18px; }
-.login-form label { font-size: 13px; font-weight: 700; }
-.login-form input { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: #F7FBFA; }
-.login-error { margin: 0; padding: 10px 12px; border-radius: 12px; background: #FDECEA; color: var(--danger); font-size: 14px; font-weight: 700; }
-.account-box { margin-top: 22px; }
-.account-box h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 16px; }
+.store-picker { display: grid; gap: 10px; margin-top: 18px; }
+.store-pick { width: 100%; justify-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; }
+.store-pick em { font-style: normal; font-size: 13px; font-weight: 700; color: #087A72; }
 .save-note { font-size: 13px; font-weight: 700; color: #087A72; }
 .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+.stat-card,
+.detail-card,
+.panel,
+.store-card,
+.inquiry-card,
+.login-card {
+  border: 1px solid var(--line);
+}

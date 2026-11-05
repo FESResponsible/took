@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useSupplier } from '@/state/SupplierProvider';
 import { Icon, type IconName } from './icons';
-import { LoginScreen } from './LoginScreen';
+import { StorePicker } from './StorePicker';
 
 const NAV: ReadonlyArray<{ href: string; label: string; icon: IconName; ownStore?: boolean }> = [
   { href: '/', label: '홈', icon: 'home' },
@@ -22,11 +22,11 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { state, logout } = useSupplier();
+  const { state, clearStore } = useSupplier();
   const store = state.stores[0];
   const openCount = state.inquiries.filter((inquiry) => !state.notes.some((note) => note.inquiryId === inquiry.id)).length;
 
-  if (!store) return <LoginScreen />;
+  if (!store) return <StorePicker />;
 
   return (
     <div className="shell">
@@ -55,11 +55,11 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="main">
         <header className="app-header">
           <div>
-            <p className="card-kicker">로그인한 매장</p>
+            <p className="card-kicker">보고 있는 매장</p>
             <strong>{store.name}</strong>
           </div>
-          <button type="button" className="btn btn-quiet" onClick={logout}>
-            로그아웃
+          <button type="button" className="btn btn-quiet" onClick={clearStore}>
+            매장 바꾸기
           </button>
         </header>
         <p className="sample-banner">이 매장의 예시 화면입니다. 금액과 메모는 이 기기에만 남고, 매장이나 손님에게 전달되지 않아요.</p>
