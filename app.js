@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=4cef3606b9a8';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=ddeca694e5e3';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=e6fd54bb96bb';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=9591e373aa3c';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=b1a612813c1e';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=ce1e4d6719ee';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -35,7 +35,8 @@ const state = {
   bookingTimes: [],
   payBooking: null,
   payStage: '',
-  paySaved: false
+  paySaved: false,
+  payLoading: false
 };
 let toastTimer;
 let mapSrc = '';
@@ -613,6 +614,7 @@ function openStore(id, source) {
   state.payBooking = null;
   state.payStage = '';
   state.paySaved = false;
+  state.payLoading = false;
   state.selectedStore = store;
   if (source !== 'refresh') {
     state.bookingCount = state.bagCount;
@@ -677,7 +679,8 @@ function showPay(booking) {
   dialog.classList.remove('survey-open');
   dialog.classList.add('pay-open');
   const name = displayName(state.selectedStore);
-  $('#store-dialog-content').innerHTML = '<div class="pay-sheet"><h2 id="store-title">' + escapeHtml(t('pay.title')) + '</h2><div class="reservation-ticket"><strong>' + escapeHtml(name) + '</strong>' + choiceSummary(booking) + '</div><div class="mvp-actions"><button class="button button-primary" type="button" id="pay-run">' + escapeHtml(t('pay.button')) + '</button><button class="button button-outline" type="button" id="pay-back">' + escapeHtml(t('pay.back')) + '</button></div><div class="pay-error" id="pay-error" hidden role="alertdialog" aria-labelledby="pay-error-text"><p id="pay-error-text">' + escapeHtml(t('pay.error')) + '</p><button class="button button-primary" type="button" id="pay-error-close">' + escapeHtml(t('pay.close')) + '</button></div></div>';
+  const loadingHidden = state.payLoading ? '' : ' hidden';
+  $('#store-dialog-content').innerHTML = '<div class="pay-sheet"><h2 id="store-title">' + escapeHtml(t('pay.title')) + '</h2><div class="reservation-ticket"><strong>' + escapeHtml(name) + '</strong>' + choiceSummary(booking) + '</div><div class="mvp-actions"><button class="button button-primary" type="button" id="pay-run">' + escapeHtml(t('pay.button')) + '</button><button class="button button-outline" type="button" id="pay-back">' + escapeHtml(t('pay.back')) + '</button></div><div class="pay-loading" id="pay-loading"' + loadingHidden + ' role="status" aria-live="polite"><span class="pay-spinner" aria-hidden="true"></span><p>' + escapeHtml(t('pay.loading')) + '</p></div></div>';
   dialog.scrollTop = 0;
 }
 
@@ -1040,15 +1043,10 @@ $('#store-dialog-content').addEventListener('click', event => {
   if (event.target.closest('#mvp-later') || event.target.closest('#pay-close')) $('#store-dialog').close();
   if (event.target.closest('#pay-back')) backToBooking();
   if (event.target.closest('#pay-run')) {
-    const popup = $('#pay-error');
-    if (!popup || !popup.hidden) return;
-    popup.hidden = false;
-    $('#pay-error-close')?.focus();
-  }
-  if (event.target.closest('#pay-error-close')) {
-    const popup = $('#pay-error');
-    if (popup) popup.hidden = true;
-    $('#pay-run')?.focus();
+    const loading = $('#pay-loading');
+    if (!loading || state.payLoading) return;
+    state.payLoading = true;
+    loading.hidden = false;
   }
   if (event.target.closest('#pay-history')) {
     $('#store-dialog').close();

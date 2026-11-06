@@ -379,7 +379,7 @@ const MESSAGES = {
   'pay.notice': L('결제 금액을 확인해 주세요.', 'Please check the amount.', '请确认付款金额。', '請確認付款金額。'),
   'pay.button': L('결제하기', 'Pay', '付款', '付款'),
   'pay.back': L('일정으로 돌아가기', 'Back to the schedule', '返回时间安排', '返回時間安排'),
-  'pay.error': L('오류가 발생했습니다', 'Something went wrong.', '发生了错误。', '發生了錯誤。'),
+  'pay.loading': L('불러오는 중', 'Loading', '加载中', '載入中'),
   'pay.ended': L('결제를 마치지 못했어요.', 'The payment did not go through.', '付款没有完成。', '付款沒有完成。'),
   'pay.saved': L('이 내용은 이 브라우저의 예약으로만 남아요. 서버로 보내지 않아요.', 'This stays in this browser as a booking only. It is not sent to a server.', '这些内容只作为预约留在这个浏览器里，不会送到服务器。', '這些內容只作為預約留在這個瀏覽器裡，不會送到伺服器。'),
   'pay.failSave': L('이 브라우저에 예약을 남기지 못했어요.', 'Could not keep the booking in this browser.', '未能把预约留在这个浏览器里。', '未能把預約留在這個瀏覽器裡。'),
