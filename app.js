@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=7936ab5869a5';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=1eeb365e7596';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=4fe2486c8667';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=4cef3606b9a8';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=ddeca694e5e3';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=e6fd54bb96bb';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -64,8 +64,14 @@ function googleMapLink(lat, lng) {
   return 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng;
 }
 
-function brightMapMarkup(lat, lng, label) {
-  const zoom = 16;
+function nearbyMapZoom(lat) {
+  const metersPerPixel = (NEAR_KM * 1000) / 110;
+  const scale = Math.cos(Number(lat) * Math.PI / 180) || 1;
+  const zoom = Math.log2((156543.03392 * Math.abs(scale)) / metersPerPixel);
+  return Math.max(3, Math.min(16, Math.round(zoom)));
+}
+
+function brightMapMarkup(lat, lng, label, zoom = 16) {
   const scale = 2 ** zoom;
   const nx = (Number(lng) + 180) / 360 * scale;
   const rad = Number(lat) * Math.PI / 180;
@@ -125,7 +131,7 @@ function renderLocationStatus() {
   element.hidden = false;
   $('#use-location').classList.add('active');
   $('#use-location').setAttribute('aria-pressed', 'true');
-  $('#use-location').textContent = t('search.here');
+  $('#use-location').textContent = state.locating ? t('location.finding') : t('search.here');
   element.innerHTML = '<span>' + (state.nearOnly ? t('location.near', { km: NEAR_KM }) : t('location.all')) + '</span><button type="button" id="toggle-near">' + (state.nearOnly ? t('location.showAll') : t('location.onlyNear')) + '</button><button type="button" id="clear-location">' + t('location.clear') + '</button>';
 }
 
@@ -157,21 +163,34 @@ function renderStores() {
     const placeArea = labelPlace(store.district || store.area);
     return '<article class="store-card"><button class="store-image-button" data-store="' + store.id + '" aria-label="' + escapeHtml(t('card.open', { name })) + '"><img src="' + store.image + '" alt="' + escapeHtml(t('card.photoAlt', { type: labelPlace(store.type) })) + '" loading="lazy" width="900" height="675" style="object-position:' + store.imagePosition + '"><span class="store-category"><span>' + escapeHtml(placeArea) + '</span><span>' + escapeHtml(labelPlace(store.type)) + '</span></span></button><button class="save-button" data-favourite="' + store.id + '" aria-label="' + escapeHtml(saved ? t('card.unsave', { name }) : t('card.save', { name })) + '" aria-pressed="' + saved + '">' + icon('heart') + '</button><div class="store-body"><button class="store-title" data-store="' + store.id + '">' + escapeHtml(name) + '</button><div class="store-meta"><div class="store-access">' + icon('walk') + '<span>' + escapeHtml(formatAccess(store.placeLabel)) + '</span></div><div class="store-hours">' + icon('clock') + '<span>' + escapeHtml(hoursText(store)) + '</span></div>' + optionMarks(store) + '</div><div class="store-price-row">' + (distance ? '<div class="store-price-stack">' + distance + '</div>' : '') + '<button class="store-open-link" data-store="' + store.id + '">' + escapeHtml(t('card.reserve')) + icon('arrow') + '</button></div></div></article>';
   }).join('');
+  const nearbyPool = state.origin ? filterStores({ origin: state.origin, nearOnly: true }) : [];
+  const recruiting = Boolean(state.origin && state.nearOnly && nearbyPool.length === 0);
+  const showMap = state.view === 'map' && (stores.length > 0 || recruiting);
   $('#store-grid').hidden = state.view !== 'cards' || !stores.length;
-  $('#place-map').hidden = state.view !== 'map' || !stores.length;
-  $('#empty-state').hidden = stores.length > 0;
+  $('#place-map').hidden = !showMap && !recruiting;
+  $('#place-map').classList.toggle('is-recruiting', recruiting);
+  $('#place-map').classList.toggle('list-only', recruiting && state.view !== 'map');
+  $('#map-list').hidden = recruiting;
+  $('#near-empty').hidden = !recruiting;
+  $('#empty-state').hidden = stores.length > 0 || recruiting;
   const more = $('#stores-more');
   if (more) {
     more.hidden = visible.length >= stores.length;
     more.textContent = t('results.more');
   }
   $('#map-list').innerHTML = visible.map(store => '<article class="map-list-card' + (store.id === state.focusedId ? ' active' : '') + '"><button type="button" class="map-focus" data-focus="' + store.id + '"><img src="' + store.image + '" alt="" loading="lazy"><span><strong>' + escapeHtml(displayName(store)) + '</strong><small><span>' + escapeHtml(formatAccess(store.placeLabel)) + '</span><span>' + escapeHtml(hoursText(store)) + '</span></small></span></button><div class="map-card-actions"><button type="button" data-store="' + store.id + '">' + escapeHtml(t('card.detail')) + '</button></div></article>').join('');
-  if (state.view === 'map' && focused) {
-    const src = focused.pinLat + ',' + focused.pinLng + ':' + document.documentElement.lang;
+  if (showMap) {
+    const here = state.origin;
+    const lat = here ? here.lat : focused.pinLat;
+    const lng = here ? here.lng : focused.pinLng;
+    const zoom = here ? nearbyMapZoom(lat) : 16;
+    const src = lat + ',' + lng + ':' + zoom + ':' + document.documentElement.lang;
     const frame = $('#map-frame');
-    if (mapSrc !== src) { mapSrc = src; frame.innerHTML = brightMapMarkup(focused.pinLat, focused.pinLng, t('map.title')); }
-    const outsideMaps = focused.showMaps ? '<a href="' + kakaoMapLink(focused.realName, focused.lat, focused.lng) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t('map.kakao')) + '</a><a href="' + googleMapLink(focused.lat, focused.lng) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t('map.google')) + '</a>' : '';
-    $('#map-links').innerHTML = '<p>' + escapeHtml(displayName(focused)) + '</p>' + outsideMaps;
+    if (mapSrc !== src) { mapSrc = src; frame.innerHTML = brightMapMarkup(lat, lng, here ? t('map.you') : t('map.title'), zoom); }
+    if (focused && !recruiting) {
+      const outsideMaps = focused.showMaps ? '<a href="' + kakaoMapLink(focused.realName, focused.lat, focused.lng) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t('map.kakao')) + '</a><a href="' + googleMapLink(focused.lat, focused.lng) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t('map.google')) + '</a>' : '';
+      $('#map-links').innerHTML = '<p>' + escapeHtml(displayName(focused)) + '</p>' + outsideMaps;
+    } else $('#map-links').innerHTML = '';
   }
   paintAreaButtons();
   $$('[data-category]').forEach(button => {
@@ -214,25 +233,32 @@ function runSearch(query = $('#location-search').value) {
   $('#places').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 
+let locateTicket = 0;
+
 function useCurrentLocation() {
+  if (state.locating) return;
   if (!navigator.geolocation) {
     toast(t('toast.noGeo'));
     if (state.sort === 'distance') state.sort = 'recommended';
     renderStores();
     return;
   }
+  const ticket = ++locateTicket;
   state.locating = true;
   renderLocationStatus();
   navigator.geolocation.getCurrentPosition(position => {
+    if (ticket !== locateTicket) return;
     state.locating = false;
     state.origin = { lat: position.coords.latitude, lng: position.coords.longitude };
     state.nearOnly = true;
     state.sort = 'distance';
+    state.view = 'map';
     state.focusedId = '';
     clearTextQuery();
     renderStores();
     $('#places').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }, () => {
+    if (ticket !== locateTicket) return;
     state.locating = false;
     if (state.sort === 'distance' && !state.origin) state.sort = 'recommended';
     renderStores();
@@ -936,6 +962,12 @@ $('#stores-more').addEventListener('click', () => {
 $('#cards-view').addEventListener('click', () => { state.view = 'cards'; renderStores(); });
 $('#map-view').addEventListener('click', () => { state.view = 'map'; renderStores(); });
 $('#use-location').addEventListener('click', useCurrentLocation);
+$('#near-empty').addEventListener('click', event => {
+  if (event.target.id !== 'show-other-areas') return;
+  state.nearOnly = false;
+  state.focusedId = '';
+  renderStores();
+});
 $('#location-status').addEventListener('click', event => {
   if (event.target.id === 'toggle-near') { state.nearOnly = !state.nearOnly; state.focusedId = ''; renderStores(); }
   if (event.target.id === 'clear-location') { state.origin = null; state.nearOnly = false; if (state.sort === 'distance') state.sort = 'recommended'; state.focusedId = ''; renderStores(); }

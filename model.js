@@ -1,6 +1,6 @@
 import { SPACES } from './spaces.js?v=096c6c10072e';
 import { MAP_SPACES } from './map-spaces.js?v=6b08f818d019';
-import { placeSearchText } from './i18n.js?v=4fe2486c8667';
+import { placeSearchText } from './i18n.js?v=e6fd54bb96bb';
 
 export const SHOW_REAL_NAMES = true;
 export const PRICING = {
@@ -13,6 +13,7 @@ export const PRICING = {
 };
 export const DAY_RATE = PRICING.dayRate;
 export const HOUR_RATE = PRICING.hourRate;
+// 현재 위치 주변은 이 반경(km) 안의 실제 좌표만 포함합니다. 반경 밖 매장을 최근접으로 채우지 않습니다.
 export const NEAR_KM = 5;
 export const AREAS = ['홍대·연남', '성수', '강남', '건대', '송리단길·잠실', '대학로', '종로·익선', '명동', '신촌·이대'];
 const DISTRICT_MIN = 3;
