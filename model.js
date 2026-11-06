@@ -1,6 +1,6 @@
 import { SPACES } from './spaces.js?v=096c6c10072e';
 import { MAP_SPACES } from './map-spaces.js?v=6b08f818d019';
-import { placeSearchText } from './i18n.js?v=238c2a060165';
+import { placeSearchText } from './i18n.js?v=4fe2486c8667';
 
 export const SHOW_REAL_NAMES = true;
 export const PRICING = {
@@ -341,10 +341,15 @@ export function resolveArea(area) {
   return { province: '', city: '', district: '' };
 }
 
+export function defaultCopyMode(locale) {
+  return locale && locale !== 'ko' ? 'tourism' : 'daily';
+}
+
 export function resolveCopyMode(queryValue, storedValue, options = {}) {
   const present = options.paramPresent === true || (queryValue != null && queryValue !== '');
-  if (present) return queryValue === 'tourism' || queryValue === 'daily' ? queryValue : 'tourism';
-  return storedValue === 'tourism' || storedValue === 'daily' ? storedValue : 'tourism';
+  if (present && (queryValue === 'tourism' || queryValue === 'daily')) return queryValue;
+  if (options.honorStored && (storedValue === 'tourism' || storedValue === 'daily')) return storedValue;
+  return defaultCopyMode(options.locale);
 }
 
 export function copyContextFor(mode) {

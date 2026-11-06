@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=d2db0d034a59';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=8150593bb381';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=238c2a060165';
+import { STORES, PRICING, NEAR_KM, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=7936ab5869a5';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=1eeb365e7596';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=4fe2486c8667';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -1131,23 +1131,27 @@ function resolvedCopyMode() {
   const params = new URLSearchParams(location.search);
   const paramPresent = params.has('copy');
   const queryValue = paramPresent ? params.get('copy') : null;
-  const storedValue = storage.get(COPY_MODE_KEY, null);
-  const mode = resolveCopyMode(queryValue, storedValue, { paramPresent });
-  if (paramPresent && (queryValue === 'tourism' || queryValue === 'daily')) storage.set(COPY_MODE_KEY, queryValue);
-  return mode;
+  try { localStorage.removeItem(COPY_MODE_KEY); } catch {}
+  return resolveCopyMode(queryValue, null, { paramPresent, locale: getLocale() });
+}
+function clearCopyPreview() {
+  const url = new URL(location.href);
+  if (!url.searchParams.has('copy')) return;
+  url.searchParams.delete('copy');
+  history.replaceState(null, '', url);
 }
 function paintCopy(name, value, html) {
-  const node = document.querySelector('[data-copy="' + name + '"]');
-  if (!node) return;
-  const item = node.closest('[data-copy-item]');
-  const shown = Boolean(value) && value !== '-';
-  if (item) item.hidden = !shown;
-  if (!shown) {
-    node.textContent = '';
-    return;
-  }
-  if (html) node.innerHTML = value;
-  else node.textContent = value;
+  document.querySelectorAll('[data-copy="' + name + '"]').forEach(node => {
+    const item = node.closest('[data-copy-item]');
+    const shown = Boolean(value) && value !== '-';
+    if (item) item.hidden = !shown;
+    if (!shown) {
+      node.textContent = '';
+      return;
+    }
+    if (html) node.innerHTML = value;
+    else node.textContent = value;
+  });
 }
 const JOURNEY_SITUATIONS = { tourism: ['checkout', 'checkin', 'move'], daily: ['show', 'meeting'] };
 const JOURNEY_MARKS = {
@@ -1369,6 +1373,7 @@ function applyLanguage() {
 }
 function selectLocale(id, focusButton) {
   const next = saveLocale(storage, id);
+  clearCopyPreview();
   applyLanguage();
   if (!focusButton) return;
   const group = focusButton.closest('[role="radiogroup"]');
@@ -1459,7 +1464,9 @@ $$('input[name="copy-mode"]').forEach(input => {
   input.addEventListener('change', () => {
     if ($('#dev-panel').hidden || !input.checked) return;
     const mode = input.value === 'daily' ? 'daily' : 'tourism';
-    storage.set(COPY_MODE_KEY, mode);
+    const url = new URL(location.href);
+    url.searchParams.set('copy', mode);
+    history.replaceState(null, '', url);
     applyCopy(mode);
     renderStores();
     refreshOpenSurfaces();

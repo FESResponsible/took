@@ -278,7 +278,7 @@ const MESSAGES = {
   'dev.copyLegend': L('문구 모드', 'Wording mode', '文案模式', '文案模式'),
   'dev.tourism': L('관광용', 'Tourism', '旅游', '旅遊'),
   'dev.daily': L('일상용', 'Everyday', '日常', '日常'),
-  'dev.copyHelp': L('기본은 관광용이에요. 언어가 아니라 문구만 바뀝니다. 이 브라우저에 저장되고, 주소의 copy 값이 있으면 그 값이 우선해요.', 'Tourism is the default. This changes the wording, not the language. It stays in this browser, and a copy value in the address takes priority.', '默认是旅游文案。这里只改文案，不改语言。会保存在这个浏览器里；如果网址带有 copy，以网址为准。', '預設是旅遊文案。這裡只改文案，不改語言。會保存在這個瀏覽器裡；如果網址帶有 copy，以網址為準。'),
+  'dev.copyHelp': L('한국어는 일상용, 다른 언어는 관광용이 기본이에요. 여기서 고르면 이 화면 미리보기만 바뀌고, 언어를 바꾸면 그 언어의 기본으로 돌아가요. 주소의 copy 값이 있으면 그 값이 우선해요.', 'Korean starts with everyday wording. Every other language starts with tourism wording. This choice previews the page only, and switching language returns to that language’s default. A copy value in the address takes priority.', '韩语默认是日常文案，其他语言默认是旅游文案。这里的选择只预览当前页面，切换语言后会回到该语言的默认文案。网址中的 copy 优先。', '韓語預設是日常文案，其他語言預設是旅遊文案。這裡的選擇只預覽目前頁面，切換語言後會回到該語言的預設文案。網址中的 copy 優先。'),
   'dev.passwordLabel': L('비밀번호', 'Password', '密码', '密碼'),
   'dev.passwordPlaceholder': L('비밀번호', 'Password', '密码', '密碼'),
   'dev.passwordSubmit': L('확인', 'Continue', '确认', '確認'),
