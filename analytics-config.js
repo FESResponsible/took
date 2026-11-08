@@ -1,5 +1,5 @@
 window.CHAEGIM_ANALYTICS = {
-  ga4MeasurementId: 'G-XLKL5360Q4',
+  ga4MeasurementId: 'G-2JDEL574CQ',
   metaPixelId: '',
   debug: false
 };

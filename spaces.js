@@ -1,3 +1,5 @@
+import { EXTRA_SPACES } from './spaces-additions.js?v=e0e325c9ccd9';
+
 export const SPACES = [
   {
     "realName": "반지대학 강남캠퍼스",
@@ -806,3 +808,5 @@ export const SPACES = [
     "popularity": 9398
   }
 ];
+
+SPACES.push(...EXTRA_SPACES);

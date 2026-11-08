@@ -1,4 +1,4 @@
-import { localizeProper } from './names.js?v=0bc48b5de0ea';
+import { localizeProper } from './names.js?v=ddda2c71bed4';
 
 // UI 언어 사전. 화면 선택지는 LOCALES만 쓴다. es, fr, de는 같은 칸에 값을 더하면 나중에 켤 수 있다.
 const LOCALES = [
@@ -223,8 +223,8 @@ const MESSAGES = {
   'guide.bagLine': L('쇼핑백 3개까지 1개로 계산', 'Up to 3 shopping bags count as 1', '购物袋最多 3 件按 1 件计算', '購物袋最多 3 件按 1 件計算'),
   'guide.plusLine': L('안심 플러스: 개당 +1,000원', 'Peace Plus: +₩1,000 per item', '安心加值: 每件 +1,000韩元', '安心加值: 每件 +1,000韓元'),
   'care.alt': C(
-    L('여행 동선에서 볼 수 있는 서울 도심 풍경', 'A Seoul city view along a travel route', '旅行路线上能看到的首尔市景', '旅行路線上能看到的首爾市景'),
-    L('일정 근처에서 볼 수 있는 서울 도심 풍경', 'A Seoul city view near everyday plans', '日常安排附近能看到的首尔市景', '日常安排附近能看到的首爾市景')
+    L('소파 옆에 세워 둔 캐리어 두 개', 'Two suitcases standing beside a sofa', '沙发旁立着的两个行李箱', '沙發旁立著的兩個行李箱'),
+    L('소파 옆에 세워 둔 캐리어 두 개', 'Two suitcases standing beside a sofa', '沙发旁立着的两个行李箱', '沙發旁立著的兩個行李箱')
   ),
   'care.kicker': L('A LITTLE MORE PEACE OF MIND', 'A LITTLE MORE PEACE OF MIND', 'A LITTLE MORE PEACE OF MIND', 'A LITTLE MORE PEACE OF MIND'),
   'care.title': L('잠시 맡기는 짐에도,<br>꼼꼼한 안심을.', 'Even a short drop-off<br>gets careful care.', '短暂寄存，<br>也仔细放心。', '短暫寄存，<br>也仔細放心。'),
@@ -746,6 +746,11 @@ const PLACES = {
   '종로·익선': P('Jongno–Ikseon', '钟路·益善', '鍾路·益善', ['jongno', 'ikseon', 'insadong']),
   '명동': P('Myeongdong', '明洞', '明洞', ['myeongdong', 'myungdong']),
   '신촌·이대': P('Sinchon–Ewha', '新村·梨大', '新村·梨大', ['sinchon', 'ewha', 'eidae']),
+  '서울숲': P('Seoul Forest', '首尔林', '首爾林', ['seoul forest', 'seoulsup']),
+  '을지로': P('Euljiro', '乙支路', '乙支路', ['euljiro']),
+  '서울역': P('Seoul Station', '首尔站', '首爾站', ['seoul station']),
+  '서촌·경복궁': P('Seochon–Gyeongbokgung', '西村·景福宫', '西村·景福宮', ['seochon', 'gyeongbokgung']),
+  '북촌·인사동': P('Bukchon–Insadong', '北村·仁寺洞', '北村·仁寺洞', ['bukchon', 'insadong']),
   '광안리': P('Gwangalli', '广安里', '廣安里', ['gwangalli', 'kwangan']),
   '해운대': P('Haeundae', '海云台', '海雲台', ['haeundae', 'haeundae beach']),
   '서면': P('Seomyeon', '西面', '西面', ['seomyeon']),

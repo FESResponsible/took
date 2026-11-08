@@ -368,6 +368,13 @@ const HANJA_ROWS = `
 흥 興 兴
 희 喜 喜
 히 希 希
+간 間 间
+돌 石 石
+쌈 衫 衫
+체 體 体
+훈 訓 训
+휴 休 休
+힙 嬉 嬉
 `.trim().split('\n').map(line => line.trim().split(/\s+/));
 
 const HANJA = new Map(HANJA_ROWS.map(([syl, hant, hans]) => [syl, { hant, hans }]));
@@ -716,6 +723,27 @@ const DICT_LINES = `
 중심가|word|City center|市中心|市中心
 시내|word|Downtown|市區|市区
 골목|word|Alley|巷|巷
+제휴|word|Partner|合作|合作
+공간|word|Space|空間|空间
+인근|word|Nearby|附近|附近
+힙지로|word|Hipjiro|Hipjiro|Hipjiro
+돌담|word|Stone wall|石牆|石墙
+자하문|word|Jahamun|紫霞門|紫霞门
+덕수궁|word|Deoksugung|德壽宮|德寿宫
+쌈지길|word|Ssamzie-gil|Ssamzie街|Ssamzie街
+망리단길|word|Mangnidan-gil|望遠里團路|望远里团路
+연세로|word|Yonsei-ro|延世路|延世路
+서촌|word|Seochon|西村|西村
+정문|word|Main gate|正門|正门
+서부|word|West side|西側|西侧
+화양|stem|Hwayang|華陽|华阳
+남창|stem|Namchang|南倉|南仓
+동자|stem|Dongja|東子|东子
+체부|stem|Chebu|體府|体府
+계동|stem|Gyedong|桂洞|桂洞
+삼청|stem|Samcheong|三清|三清
+관훈|stem|Gwanhun|寬勳|宽勋
+통인|stem|Tongin|通仁|通仁
 나루|word|Ferry|渡口|渡口
 월미|word|Wolmi|月尾|月尾
 근처|near|Near|附近|附近
