@@ -1,6 +1,7 @@
 import { STORES, PRICING, NEAR_KM, SHOW_REAL_NAMES, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=5758ad139f2a';
 import { initAnalytics, setCopyContext, track } from './analytics.js?v=c16d7ed68f50';
 import { buildPartnerApplication, sendPartnerApplication } from './partner-submit.js?v=155678e0dba0';
+import { createKakaoMap, loadKakaoMaps } from './kakao-map.js?v=647130157baa';
 import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=0085da33c9cc';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
@@ -49,6 +50,9 @@ let mapStores = [];
 let mapDrag = null;
 let mapIgnoreClick = false;
 const mapCamera = { lat: 36.5, lng: 127.8, zoom: 6 };
+let kakaoMap = null;
+let kakaoStatus = window.CHAEGIM_ANALYTICS?.kakaoMapKey ? 'idle' : 'failed';
+const mapMaxZoom = () => (kakaoMap ? 19 : 17);
 
 function toast(message) {
   const element = $('#toast');
@@ -117,7 +121,7 @@ function unprojectPoint(x, y, zoom) {
 }
 
 function mapViewportSize() {
-  const viewport = $('#map-frame .slippy-viewport');
+  const viewport = $('#map-frame .slippy-viewport, #map-frame .kakao-map-canvas');
   const width = viewport ? viewport.clientWidth : 0;
   const height = viewport ? viewport.clientHeight : 0;
   if (width > 0 && height > 0) return { w: width, h: height, ready: true };
@@ -304,6 +308,7 @@ function positionSlippyWorld() {
 }
 
 function paintSlippy(stores) {
+  if (kakaoMap) { paintKakaoMap(stores); return; }
   const root = $('#map-frame .slippy-map');
   if (!root) return;
   const world = root.querySelector('.slippy-world');
@@ -330,7 +335,7 @@ function paintSlippy(stores) {
 
 function changeMapZoom(delta, anchorX, anchorY) {
   const size = mapViewportSize();
-  const next = Math.min(17, Math.max(5, mapCamera.zoom + delta));
+  const next = Math.min(mapMaxZoom(), Math.max(kakaoMap ? 6 : 5, mapCamera.zoom + delta));
   if (next === mapCamera.zoom) return;
   const before = projectPoint(mapCamera.lat, mapCamera.lng, mapCamera.zoom);
   const ax = anchorX == null ? size.w / 2 : anchorX;
@@ -348,7 +353,7 @@ function changeMapZoom(delta, anchorX, anchorY) {
 function openMapCluster(stores) {
   const before = mapCamera.zoom;
   fitMapStores(stores);
-  if (mapCamera.zoom <= before) mapCamera.zoom = Math.min(17, before + 2);
+  if (mapCamera.zoom <= before) mapCamera.zoom = Math.min(mapMaxZoom(), before + 2);
   paintSlippy(mapStores);
 }
 
@@ -432,10 +437,81 @@ function ensureSlippy(frame) {
   });
 }
 
+function kakaoMarkers(stores) {
+  const markers = groupMapMarkers(stores, mapCamera.zoom);
+  mapClusters = markers.filter(item => item.kind === 'cluster');
+  const places = markers.map(marker => {
+    if (marker.kind === 'pin') {
+      const isActive = marker.store.id === state.focusedId;
+      return {
+        lat: marker.lat,
+        lng: marker.lng,
+        isActive,
+        className: 'slippy-pin' + (isActive ? ' is-active' : ''),
+        ariaLabel: t('map.pin', { name: displayName(marker.store) }),
+        onClick: () => { state.focusedId = marker.store.id; mapScrollFocus = true; renderStores(); },
+      };
+    }
+    return {
+      lat: marker.lat,
+      lng: marker.lng,
+      className: 'slippy-cluster',
+      label: marker.label,
+      count: formatNumber(marker.count),
+      ariaLabel: t('map.cluster', { name: marker.label, count: formatNumber(marker.count) }),
+      onClick: () => openMapCluster(marker.stores),
+    };
+  });
+  if (!state.origin) return places;
+  return [...places, { lat: state.origin.lat, lng: state.origin.lng, className: 'slippy-you', ariaLabel: t('map.you') }];
+}
+
+function paintKakaoMap(stores) {
+  const frame = $('#map-frame');
+  frame.querySelector('.slippy-map').setAttribute('aria-label', t('map.canvas'));
+  frame.querySelector('[data-map-zoom="in"]').setAttribute('aria-label', t('map.zoomIn'));
+  frame.querySelector('[data-map-zoom="out"]').setAttribute('aria-label', t('map.zoomOut'));
+  kakaoMap.setCamera(mapCamera);
+  kakaoMap.setMarkers(kakaoMarkers(stores));
+}
+
+function onKakaoIdle(camera) {
+  Object.assign(mapCamera, camera);
+  paintKakaoMap($('#place-map').classList.contains('is-recruiting') ? [] : mapStores);
+}
+
+function startKakaoMap(frame) {
+  kakaoStatus = 'loading';
+  frame.innerHTML = '<div class="slippy-map" role="application" aria-label="' + escapeHtml(t('map.canvas')) + '"><div class="kakao-map-canvas"></div><div class="slippy-controls"><button type="button" data-map-zoom="in" aria-label="' + escapeHtml(t('map.zoomIn')) + '">+</button><button type="button" data-map-zoom="out" aria-label="' + escapeHtml(t('map.zoomOut')) + '">−</button></div></div>';
+  loadKakaoMaps(window.CHAEGIM_ANALYTICS.kakaoMapKey).then(() => {
+    kakaoMap = createKakaoMap($('.kakao-map-canvas', frame), { camera: mapCamera, onIdle: onKakaoIdle });
+    kakaoStatus = 'ready';
+    $('.slippy-controls', frame).addEventListener('click', event => {
+      const button = event.target.closest('[data-map-zoom]');
+      if (button) changeMapZoom(button.dataset.mapZoom === 'in' ? 1 : -1);
+    });
+    window.addEventListener('resize', () => {
+      if (!kakaoMap) return;
+      kakaoMap.relayout();
+      paintKakaoMap($('#place-map').classList.contains('is-recruiting') ? [] : mapStores);
+    });
+  }).catch(error => {
+    console.error('카카오맵을 불러오지 못해 기본 지도로 표시합니다', error);
+    kakaoMap = null;
+    kakaoStatus = 'failed';
+    frame.innerHTML = '';
+  }).finally(() => {
+    mapFitKey = '';
+    renderStores();
+  });
+}
+
 function syncPlaceMap(stores, recruiting) {
   mapStores = stores;
   const frame = $('#map-frame');
-  ensureSlippy(frame);
+  if (kakaoStatus === 'idle') startKakaoMap(frame);
+  if (kakaoStatus === 'loading') return;
+  if (kakaoMap) kakaoMap.relayout(); else ensureSlippy(frame);
   const key = mapFilterKey() + '|' + (recruiting ? 'recruit' : 'places');
   if (mapPanId) {
     const id = mapPanId;

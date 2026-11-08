@@ -648,3 +648,6 @@ html[data-copy="daily"] .hero-description{grid-column:1 / -1;grid-row:2;width:10
 }
 .partner-website{position:absolute;left:-9999px}
 .partner-error{margin:0;color:#b3261e;font-size:14px;line-height:1.5}
+.kakao-map-canvas{position:absolute;inset:0;isolation:isolate}
+.kakao-marker{position:relative;width:0;height:0}
+.kakao-marker>.slippy-pin,.kakao-marker>.slippy-cluster,.kakao-marker>.slippy-you{left:0;top:0}
