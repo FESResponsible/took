@@ -1,6 +1,6 @@
-import { STORES, PRICING, NEAR_KM, SHOW_REAL_NAMES, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=a7bfb6524bc3';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=bdfc3c76b5d9';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=c2af5115f742';
+import { STORES, PRICING, NEAR_KM, SHOW_REAL_NAMES, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=7e15049be250';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=d76a9d49b4fd';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=514817cd4552';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -39,7 +39,15 @@ const state = {
   payLoading: false
 };
 let toastTimer;
-let mapSrc = '';
+let mapPanId = '';
+let mapScrollFocus = false;
+let mapFitKey = '';
+let mapFitUsedFallback = false;
+let mapClusters = [];
+let mapStores = [];
+let mapDrag = null;
+let mapIgnoreClick = false;
+const mapCamera = { lat: 36.5, lng: 127.8, zoom: 6 };
 
 function toast(message) {
   const element = $('#toast');
@@ -88,6 +96,370 @@ function brightMapMarkup(lat, lng, label, zoom = 16) {
     }
   }
   return '<div class="bright-map" role="img" aria-label="' + escapeHtml(label) + '" style="--ox:' + ox + 'px;--oy:' + oy + 'px"><div class="bright-map-tiles">' + tiles + '</div><span class="bright-map-pin" aria-hidden="true"></span><p class="bright-map-credit"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a></p></div>';
+}
+
+function projectPoint(lat, lng, zoom) {
+  const scale = 256 * 2 ** zoom;
+  const x = (Number(lng) + 180) / 360 * scale;
+  const clamped = Math.max(-85, Math.min(85, Number(lat)));
+  const rad = clamped * Math.PI / 180;
+  const y = (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * scale;
+  return { x, y };
+}
+
+function unprojectPoint(x, y, zoom) {
+  const scale = 256 * 2 ** zoom;
+  const lng = x / scale * 360 - 180;
+  const n = Math.PI - 2 * Math.PI * y / scale;
+  const lat = 180 / Math.PI * Math.atan(Math.sinh(n));
+  return { lat: Math.max(-85, Math.min(85, lat)), lng };
+}
+
+function mapViewportSize() {
+  const viewport = $('#map-frame .slippy-viewport');
+  const width = viewport ? viewport.clientWidth : 0;
+  const height = viewport ? viewport.clientHeight : 0;
+  if (width > 0 && height > 0) return { w: width, h: height, ready: true };
+  return { w: 640, h: 460, ready: false };
+}
+
+function mapFilterKey() {
+  const origin = state.origin ? state.origin.lat.toFixed(5) + ',' + state.origin.lng.toFixed(5) : '';
+  return [state.area, state.category, state.hours24, state.cold, state.query, state.nearOnly, origin].join('|');
+}
+
+function regionLevel(zoom) {
+  if (zoom <= 7) return 'province';
+  if (zoom <= 10) return 'city';
+  if (zoom <= 13) return 'area';
+  return 'store';
+}
+
+function nextRegionLevel(level) {
+  if (level === 'province') return 'city';
+  if (level === 'city') return 'area';
+  return 'store';
+}
+
+function regionBucket(store, level) {
+  if (level === 'province') return store.province || store.city || store.area || store.id;
+  if (level === 'city') return store.city || store.area || store.id;
+  if (level === 'area') return store.area || store.district || store.city || store.id;
+  return store.id;
+}
+
+function markerDistance(a, b, zoom) {
+  const start = projectPoint(a.lat, a.lng, zoom);
+  const end = projectPoint(b.lat, b.lng, zoom);
+  return Math.hypot(start.x - end.x, start.y - end.y);
+}
+
+function markerSpread(stores, zoom) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  stores.forEach(store => {
+    const point = projectPoint(store.lat, store.lng, zoom);
+    minX = Math.min(minX, point.x);
+    maxX = Math.max(maxX, point.x);
+    minY = Math.min(minY, point.y);
+    maxY = Math.max(maxY, point.y);
+  });
+  return Math.hypot(maxX - minX, maxY - minY);
+}
+
+function clusterLabel(stores) {
+  const ranked = names => [...names.filter(Boolean).reduce((counts, name) => counts.set(name, (counts.get(name) || 0) + 1), new Map()).entries()].sort((a, b) => b[1] - a[1]);
+  const areas = ranked(stores.map(store => store.area));
+  if (areas.length === 1) return labelPlace(areas[0][0]);
+  const cities = ranked(stores.map(store => store.city));
+  if (cities[0] && cities[0][1] >= stores.length * 0.5) return labelPlace(cities[0][0]);
+  const provinces = ranked(stores.map(store => store.province));
+  if (provinces[0] && provinces[0][1] >= stores.length * 0.5) return labelPlace(provinces[0][0]);
+  return t('map.region');
+}
+
+function makeCluster(stores) {
+  const lat = stores.reduce((sum, store) => sum + store.lat, 0) / stores.length;
+  const lng = stores.reduce((sum, store) => sum + store.lng, 0) / stores.length;
+  return { kind: 'cluster', stores, count: stores.length, lat, lng, label: clusterLabel(stores) };
+}
+
+function pinMarker(store) {
+  return { kind: 'pin', store, lat: store.lat, lng: store.lng };
+}
+
+function expandRegions(stores, level, zoom) {
+  if (level === 'store' || stores.length <= 1) return stores.map(pinMarker);
+  const buckets = new Map();
+  stores.forEach(store => {
+    const key = regionBucket(store, level);
+    const list = buckets.get(key);
+    if (list) list.push(store); else buckets.set(key, [store]);
+  });
+  const markers = [];
+  buckets.forEach(items => {
+    if (items.length === 1) { markers.push(pinMarker(items[0])); return; }
+    if (markerSpread(items, zoom) < 64) { markers.push(makeCluster(items)); return; }
+    const finer = nextRegionLevel(level);
+    const finerKeys = new Set(items.map(store => regionBucket(store, finer)));
+    if (finer === 'store' || finerKeys.size <= 1) {
+      if (zoom >= 14) items.forEach(store => markers.push(pinMarker(store)));
+      else markers.push(makeCluster(items));
+      return;
+    }
+    markers.push(...expandRegions(items, finer, zoom));
+  });
+  return markers;
+}
+
+function groupMapMarkers(stores, zoom) {
+  const loose = expandRegions(stores, regionLevel(zoom), zoom);
+  const clusters = loose.filter(item => item.kind === 'cluster');
+  const pins = loose.filter(item => item.kind === 'pin');
+  const used = new Set();
+  const merged = [];
+  clusters.forEach((cluster, index) => {
+    if (used.has(index)) return;
+    const pile = [cluster];
+    used.add(index);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      clusters.forEach((other, otherIndex) => {
+        if (used.has(otherIndex)) return;
+        if (!pile.some(item => markerDistance(item, other, zoom) < 28)) return;
+        const together = pile.flatMap(item => item.stores).concat(other.stores);
+        if (markerSpread(together, zoom) > 52) return;
+        used.add(otherIndex);
+        pile.push(other);
+        grew = true;
+      });
+    }
+    merged.push(pile.length === 1 ? cluster : makeCluster(pile.flatMap(item => item.stores)));
+  });
+  const kept = [];
+  pins.forEach(pin => {
+    if (zoom >= 14) { kept.push(pin); return; }
+    const host = merged.find(cluster => markerDistance(pin, cluster, zoom) < 40);
+    if (!host) { kept.push(pin); return; }
+    host.stores.push(pin.store);
+    host.count = host.stores.length;
+    host.lat = host.stores.reduce((sum, store) => sum + store.lat, 0) / host.stores.length;
+    host.lng = host.stores.reduce((sum, store) => sum + store.lng, 0) / host.stores.length;
+    host.label = clusterLabel(host.stores);
+  });
+  return merged.concat(kept);
+}
+
+function fitMapStores(stores) {
+  if (!stores.length) return;
+  let north = -90, south = 90, west = 180, east = -180;
+  stores.forEach(store => {
+    north = Math.max(north, store.lat);
+    south = Math.min(south, store.lat);
+    west = Math.min(west, store.lng);
+    east = Math.max(east, store.lng);
+  });
+  const size = mapViewportSize();
+  mapFitUsedFallback = !size.ready;
+  let zoom = 5;
+  for (let level = 16; level >= 5; level -= 1) {
+    const northWest = projectPoint(north, west, level);
+    const southEast = projectPoint(south, east, level);
+    if (southEast.x - northWest.x <= size.w - 72 && southEast.y - northWest.y <= size.h - 72) { zoom = level; break; }
+  }
+  mapCamera.zoom = zoom;
+  mapCamera.lat = (north + south) / 2;
+  mapCamera.lng = (west + east) / 2;
+}
+
+function tileMarkup(zoom) {
+  const size = mapViewportSize();
+  const center = projectPoint(mapCamera.lat, mapCamera.lng, zoom);
+  const pad = 256;
+  const max = 2 ** zoom;
+  const x0 = Math.floor((center.x - size.w / 2 - pad) / 256);
+  const x1 = Math.floor((center.x + size.w / 2 + pad) / 256);
+  const y0 = Math.max(0, Math.floor((center.y - size.h / 2 - pad) / 256));
+  const y1 = Math.min(max - 1, Math.floor((center.y + size.h / 2 + pad) / 256));
+  let html = '';
+  for (let y = y0; y <= y1; y += 1) {
+    for (let x = x0; x <= x1; x += 1) {
+      const wrapped = (x % max + max) % max;
+      html += '<img class="slippy-tile" alt="" width="256" height="256" decoding="async" style="left:' + (x * 256) + 'px;top:' + (y * 256) + 'px" src="https://tile.openstreetmap.org/' + zoom + '/' + wrapped + '/' + y + '.png">';
+    }
+  }
+  return html;
+}
+
+function positionSlippyWorld() {
+  const world = $('#map-frame .slippy-world');
+  if (!world) return;
+  const size = mapViewportSize();
+  const center = projectPoint(mapCamera.lat, mapCamera.lng, mapCamera.zoom);
+  world.style.transform = 'translate(' + (size.w / 2 - center.x) + 'px,' + (size.h / 2 - center.y) + 'px)';
+}
+
+function paintSlippy(stores) {
+  const root = $('#map-frame .slippy-map');
+  if (!root) return;
+  const world = root.querySelector('.slippy-world');
+  const zoom = mapCamera.zoom;
+  root.dataset.zoom = String(zoom);
+  const markers = groupMapMarkers(stores, zoom);
+  mapClusters = markers.filter(item => item.kind === 'cluster');
+  const markerHtml = markers.map(marker => {
+    const point = projectPoint(marker.lat, marker.lng, zoom);
+    if (marker.kind === 'pin') {
+      const active = marker.store.id === state.focusedId ? ' is-active' : '';
+      return '<button type="button" class="slippy-pin' + active + '" data-map-pin="' + marker.store.id + '" style="left:' + point.x + 'px;top:' + point.y + 'px" aria-label="' + escapeHtml(t('map.pin', { name: displayName(marker.store) })) + '"></button>';
+    }
+    const index = mapClusters.indexOf(marker);
+    return '<button type="button" class="slippy-cluster" data-map-cluster="' + index + '" style="left:' + point.x + 'px;top:' + point.y + 'px" aria-label="' + escapeHtml(t('map.cluster', { name: marker.label, count: formatNumber(marker.count) })) + '"><span>' + escapeHtml(marker.label) + '</span><strong>' + escapeHtml(formatNumber(marker.count)) + '</strong></button>';
+  }).join('');
+  const you = state.origin ? (() => {
+    const point = projectPoint(state.origin.lat, state.origin.lng, zoom);
+    return '<span class="slippy-you" style="left:' + point.x + 'px;top:' + point.y + 'px" role="img" aria-label="' + escapeHtml(t('map.you')) + '"></span>';
+  })() : '';
+  world.innerHTML = '<div class="slippy-tiles">' + tileMarkup(zoom) + '</div><div class="slippy-markers">' + you + markerHtml + '</div>';
+  positionSlippyWorld();
+}
+
+function changeMapZoom(delta, anchorX, anchorY) {
+  const size = mapViewportSize();
+  const next = Math.min(17, Math.max(5, mapCamera.zoom + delta));
+  if (next === mapCamera.zoom) return;
+  const before = projectPoint(mapCamera.lat, mapCamera.lng, mapCamera.zoom);
+  const ax = anchorX == null ? size.w / 2 : anchorX;
+  const ay = anchorY == null ? size.h / 2 : anchorY;
+  const worldX = before.x + (ax - size.w / 2);
+  const worldY = before.y + (ay - size.h / 2);
+  const scale = 2 ** (next - mapCamera.zoom);
+  const point = unprojectPoint(worldX * scale - (ax - size.w / 2), worldY * scale - (ay - size.h / 2), next);
+  mapCamera.zoom = next;
+  mapCamera.lat = point.lat;
+  mapCamera.lng = point.lng;
+  paintSlippy(mapStores);
+}
+
+function openMapCluster(stores) {
+  const before = mapCamera.zoom;
+  fitMapStores(stores);
+  if (mapCamera.zoom <= before) mapCamera.zoom = Math.min(17, before + 2);
+  paintSlippy(mapStores);
+}
+
+function refitMapWhenReady() {
+  if (!mapViewportSize().ready) return;
+  if (mapFitUsedFallback) {
+    mapFitUsedFallback = false;
+    mapFitKey = '';
+    syncPlaceMap(mapStores, $('#place-map').classList.contains('is-recruiting'));
+    return;
+  }
+  paintSlippy(mapStores);
+}
+
+function onSlippyClick(event) {
+  if (mapIgnoreClick) { mapIgnoreClick = false; return; }
+  const zoomButton = event.target.closest('[data-map-zoom]');
+  if (zoomButton) {
+    event.preventDefault();
+    changeMapZoom(zoomButton.dataset.mapZoom === 'in' ? 1 : -1);
+    return;
+  }
+  const pin = event.target.closest('[data-map-pin]');
+  if (pin) {
+    event.stopPropagation();
+    state.focusedId = pin.dataset.mapPin;
+    mapScrollFocus = true;
+    renderStores();
+    return;
+  }
+  const cluster = event.target.closest('[data-map-cluster]');
+  if (!cluster) return;
+  event.stopPropagation();
+  const group = mapClusters[Number(cluster.dataset.mapCluster)];
+  if (group) openMapCluster(group.stores);
+}
+
+function ensureSlippy(frame) {
+  const existing = frame.querySelector('.slippy-map');
+  if (existing) {
+    existing.setAttribute('aria-label', t('map.canvas'));
+    frame.querySelector('[data-map-zoom="in"]').setAttribute('aria-label', t('map.zoomIn'));
+    frame.querySelector('[data-map-zoom="out"]').setAttribute('aria-label', t('map.zoomOut'));
+    return;
+  }
+  frame.innerHTML = '<div class="slippy-map" role="application" aria-label="' + escapeHtml(t('map.canvas')) + '"><div class="slippy-viewport"><div class="slippy-world"></div></div><div class="slippy-controls"><button type="button" data-map-zoom="in" aria-label="' + escapeHtml(t('map.zoomIn')) + '">+</button><button type="button" data-map-zoom="out" aria-label="' + escapeHtml(t('map.zoomOut')) + '">−</button></div><p class="bright-map-credit"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a></p></div>';
+  const viewport = frame.querySelector('.slippy-viewport');
+  viewport.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || event.target.closest('.slippy-controls, .bright-map-credit')) return;
+    mapDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, lat: mapCamera.lat, lng: mapCamera.lng, moved: false };
+    viewport.classList.add('is-dragging');
+    viewport.setPointerCapture(event.pointerId);
+  });
+  viewport.addEventListener('pointermove', event => {
+    if (!mapDrag || mapDrag.id !== event.pointerId) return;
+    const dx = event.clientX - mapDrag.x;
+    const dy = event.clientY - mapDrag.y;
+    if (Math.hypot(dx, dy) > 4) mapDrag.moved = true;
+    const start = projectPoint(mapDrag.lat, mapDrag.lng, mapCamera.zoom);
+    const next = unprojectPoint(start.x - dx, start.y - dy, mapCamera.zoom);
+    mapCamera.lat = next.lat;
+    mapCamera.lng = next.lng;
+    paintSlippy(mapStores);
+  });
+  const endDrag = event => {
+    if (!mapDrag || mapDrag.id !== event.pointerId) return;
+    mapIgnoreClick = mapDrag.moved;
+    mapDrag = null;
+    viewport.classList.remove('is-dragging');
+  };
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+  viewport.addEventListener('wheel', event => {
+    event.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    changeMapZoom(event.deltaY > 0 ? -1 : 1, event.clientX - rect.left, event.clientY - rect.top);
+  }, { passive: false });
+  frame.querySelector('.slippy-map').addEventListener('click', onSlippyClick);
+  window.addEventListener('resize', () => {
+    if ($('#map-frame .slippy-map') && !$('#place-map').hidden) paintSlippy(mapStores);
+  });
+}
+
+function syncPlaceMap(stores, recruiting) {
+  mapStores = stores;
+  const frame = $('#map-frame');
+  ensureSlippy(frame);
+  const key = mapFilterKey() + '|' + (recruiting ? 'recruit' : 'places');
+  if (mapPanId) {
+    const id = mapPanId;
+    mapPanId = '';
+    const store = stores.find(item => item.id === id);
+    if (store) {
+      mapCamera.zoom = Math.max(mapCamera.zoom, 15);
+      mapCamera.lat = store.lat;
+      mapCamera.lng = store.lng;
+    }
+  } else if (mapFitKey !== key) {
+    mapFitKey = key;
+    if (state.origin && (recruiting || state.nearOnly)) {
+      mapCamera.lat = state.origin.lat;
+      mapCamera.lng = state.origin.lng;
+      mapCamera.zoom = nearbyMapZoom(state.origin.lat);
+    } else fitMapStores(stores);
+  }
+  paintSlippy(recruiting ? [] : stores);
+  if (mapScrollFocus && state.focusedId) {
+    const card = document.querySelector('.map-list-card.active');
+    if (card) card.scrollIntoView({ block: 'nearest' });
+  }
+  mapScrollFocus = false;
+  if (!mapViewportSize().ready) requestAnimationFrame(refitMapWhenReady);
 }
 
 function halfHours(open, close) {
@@ -147,8 +519,12 @@ function renderStores() {
     state.listLimit = STORE_PAGE;
   }
   const stores = filterStores(currentCriteria());
+  if (state.focusedId && !stores.some(store => store.id === state.focusedId)) state.focusedId = '';
+  if (state.focusedId) {
+    const focusedIndex = stores.findIndex(store => store.id === state.focusedId);
+    if (focusedIndex >= state.listLimit) state.listLimit = focusedIndex + 1;
+  }
   const visible = stores.slice(0, state.listLimit);
-  if (state.view === 'map' && stores.length && !stores.some(store => store.id === state.focusedId)) state.focusedId = stores[0].id;
   const focused = stores.find(store => store.id === state.focusedId) || null;
   const countHtml = '<strong>' + escapeHtml(formatNumber(stores.length)) + '</strong>';
   const lead = state.query
@@ -184,16 +560,10 @@ function renderStores() {
   }
   $('#map-list').innerHTML = visible.map(store => '<article class="map-list-card' + (store.id === state.focusedId ? ' active' : '') + '"><button type="button" class="map-focus" data-focus="' + store.id + '">' + (store.showMaps ? '<img src="' + store.image + '" alt="" loading="lazy">' : '') + '<span><strong>' + escapeHtml(displayName(store)) + '</strong><small><span>' + escapeHtml(formatAccess(store.placeLabel)) + '</span><span>' + escapeHtml(hoursText(store)) + '</span></small></span></button><div class="map-card-actions"><button type="button" data-store="' + store.id + '">' + escapeHtml(t('card.detail')) + '</button></div></article>').join('');
   if (showMap) {
-    const here = state.origin;
-    const lat = here ? here.lat : focused.pinLat;
-    const lng = here ? here.lng : focused.pinLng;
-    const zoom = here ? nearbyMapZoom(lat) : 16;
-    const src = lat + ',' + lng + ':' + zoom + ':' + document.documentElement.lang;
-    const frame = $('#map-frame');
-    if (mapSrc !== src) { mapSrc = src; frame.innerHTML = brightMapMarkup(lat, lng, here ? t('map.you') : t('map.title'), zoom); }
+    syncPlaceMap(stores, recruiting);
     if (focused && !recruiting) {
       const outsideMaps = focused.showMaps ? '<a href="' + kakaoMapLink(focused.realName, focused.lat, focused.lng) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t('map.kakao')) + '</a><a href="' + googleMapLink(focused.lat, focused.lng) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t('map.google')) + '</a>' : '';
-      $('#map-links').innerHTML = '<p>' + escapeHtml(displayName(focused)) + '</p>' + outsideMaps;
+      $('#map-links').innerHTML = '<p>' + escapeHtml(displayName(focused)) + '</p><button type="button" data-store="' + focused.id + '">' + escapeHtml(t('card.detail')) + '</button>' + outsideMaps;
     } else $('#map-links').innerHTML = '';
   }
   paintAreaButtons();
@@ -1038,7 +1408,7 @@ document.addEventListener('click', event => {
     return;
   }
   const focus = event.target.closest('[data-focus]');
-  if (focus) { state.focusedId = focus.dataset.focus; state.view = 'map'; renderStores(); return; }
+  if (focus) { state.focusedId = focus.dataset.focus; state.view = 'map'; mapPanId = state.focusedId; renderStores(); return; }
   const target = event.target.closest('[data-store]');
   if (target) openStore(target.dataset.store, target.classList.contains('store-open-link') ? 'reserve' : 'detail');
 });
