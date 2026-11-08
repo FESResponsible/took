@@ -1,6 +1,7 @@
-import { STORES, PRICING, NEAR_KM, SHOW_REAL_NAMES, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=f3fa956c3d6d';
-import { initAnalytics, setCopyContext, track } from './analytics.js?v=23dd2e54dc99';
-import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=cb207db29a31';
+import { STORES, PRICING, NEAR_KM, SHOW_REAL_NAMES, filterStores, quote, validateBooking, localDate, toMinutes, setShowRealNames, resolveCopyMode, districtsFor, resolveArea, regionChoices, citiesForProvince } from './model.js?v=5758ad139f2a';
+import { initAnalytics, setCopyContext, track } from './analytics.js?v=c16d7ed68f50';
+import { buildPartnerApplication, sendPartnerApplication } from './partner-submit.js?v=155678e0dba0';
+import { t, copyPack, setCopyMode, loadLocale, saveLocale, getLocale, localeLang, labelPlace, displayName, formatAddress, formatMoney, formatDate, formatHours, formatAccess, formatNumber, unitPhrase, bagCountLabel, translateError } from './i18n.js?v=0085da33c9cc';
 
 const $ = (selector, scope = document) => scope.querySelector(selector);
 const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
@@ -1470,15 +1471,31 @@ $('#partner-open').addEventListener('click', () => {
   track('partner_cta_click', { source: 'partner_section' });
   $('#partner-form').hidden = false;
   $('#partner-success').hidden = true;
+  $('#partner-error').hidden = true;
   $('#partner-dialog').showModal();
 });
-$('#partner-form').addEventListener('submit', event => {
+$('#partner-form').addEventListener('submit', async event => {
   event.preventDefault();
-  if (!event.currentTarget.reportValidity()) return;
-  const data = new FormData(event.currentTarget);
-  track('partner_submit', { store_name: String(data.get('store') || ''), area: String(data.get('area') || '') });
-  event.currentTarget.reset();
-  event.currentTarget.hidden = true;
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const data = new FormData(form);
+  const submitButton = $('[type="submit"]', form);
+  const errorMessage = $('#partner-error');
+  errorMessage.hidden = true;
+  submitButton.disabled = true;
+  try {
+    const application = buildPartnerApplication(Object.fromEntries(data), location.hostname);
+    await sendPartnerApplication(window.CHAEGIM_ANALYTICS?.partnerEndpoint, application);
+  } catch (error) {
+    console.error('파트너 신청 전송 실패', error);
+    errorMessage.hidden = false;
+    return;
+  } finally {
+    submitButton.disabled = false;
+  }
+  track('partner_submit', { area: String(data.get('area') || '') });
+  form.reset();
+  form.hidden = true;
   $('#partner-success').hidden = false;
   $('#partner-success .button').focus();
 });
