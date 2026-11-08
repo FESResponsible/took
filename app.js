@@ -20,7 +20,7 @@ const state = {
   hours24: false,
   cold: false,
   sort: 'recommended',
-  view: 'cards',
+  view: 'map',
   bagCount: 1,
   bagNote: '',
   origin: null,
