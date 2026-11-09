@@ -459,7 +459,7 @@ body{background:#fff;background-image:none;color:#213A3C}
 .slippy-controls{position:absolute;z-index:4;top:10px;right:10px;display:flex;flex-direction:column;gap:6px}
 .slippy-controls button{width:36px;height:36px;border:1px solid #D5EFEA;border-radius:10px;background:#fff;color:#213A3C;font-size:20px;font-weight:600;line-height:1}
 .slippy-pin{position:absolute;z-index:2;width:40px;height:54px;padding:0;border:0;border-radius:0;background:url("assets/map-pin.png") center / contain no-repeat;box-shadow:none;transform:translate(-50%,-100%);transform-origin:50% 100%;filter:drop-shadow(0 1px 1px #213A3C33)}
-.slippy-pin.is-active{z-index:3;background-color:transparent;border-radius:0;box-shadow:none;transform:translate(-50%,-100%) scale(1.12);filter:hue-rotate(14deg) saturate(1.16) drop-shadow(0 1px 1px #213A3C33)}
+.slippy-pin.is-active{z-index:3;background-color:transparent;background-image:url("assets/map-pin-selected.png");border-radius:0;box-shadow:none;transform:translate(-50%,-100%) scale(1.12);filter:drop-shadow(0 1px 1px #213A3C33)}
 .slippy-cluster{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:center;min-width:44px;max-width:88px;padding:5px 7px;border:2px solid #fff;border-radius:14px;background:#08CBAA;color:#213A3C;box-shadow:0 2px 8px #213A3C33;line-height:1.15;transform:translate(-50%,-50%)}
 .slippy-cluster span{max-width:74px;overflow:hidden;font-size:10px;font-weight:600;text-overflow:ellipsis;white-space:nowrap}
 .slippy-cluster strong{font-size:13px}
