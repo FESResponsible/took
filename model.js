@@ -1,10 +1,10 @@
 import { SPACES } from './spaces.js?v=94dcc6ab006c';
 import { MAP_SPACES } from './map-spaces.js?v=6b08f818d019';
-import { placeSearchText } from './i18n.js?v=0085da33c9cc';
+import { placeSearchText } from './i18n.js?v=43a6814b3b24';
 
 export const SHOW_REAL_NAMES = false;
 export const PRICING = {
-  hourRate: 1000,
+  hourRate: 2000,
   dayRate: 5000,
   minHours: 2,
   dayHours: 24,

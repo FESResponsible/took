@@ -1,4 +1,4 @@
-import { copyContextFor } from './model.js?v=5758ad139f2a';
+import { copyContextFor } from './model.js?v=38af4a2872d3';
 
 const STORAGE_KEY = 'chaegim-mvp-events';
 const MAX_LOCAL = 200;
